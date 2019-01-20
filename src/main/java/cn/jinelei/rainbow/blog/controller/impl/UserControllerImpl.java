@@ -80,13 +80,17 @@ public class UserControllerImpl implements UserController {
             @Authorization.AuthorizationCondition(grantGroup = GroupPrivilege.ROOT_GROUP),
             @Authorization.AuthorizationCondition(grantOperator = OperatorPrivilege.ONLY_MYSELF, parameterName = "id"),
     })
-    @RequestMapping(value = "/user/id/{id}", method = RequestMethod.DELETE)
-    public void deleteUser(@PathVariable(name = "id") Integer id) throws CustomizeException {
+    @RequestMapping(value = "/user", method = RequestMethod.DELETE)
+    public void deleteUser(@RequestParam(name = "id") Integer id) throws CustomizeException {
         UserEntity userEntity = userService.findUserById(id);
         userService.removeUser(userEntity);
     }
 
     @Override
+    @Authorization(orConditions = {
+            @Authorization.AuthorizationCondition(grantGroup = GroupPrivilege.ROOT_GROUP),
+            @Authorization.AuthorizationCondition(grantOperator = OperatorPrivilege.ONLY_MYSELF, parameterName = "id"),
+    })
     @RequestMapping(value = "/user/id/{id}", method = RequestMethod.PUT)
     public UserEntity updateUser(@PathVariable(value = "id") Integer id,
                                  @RequestBody UserEntity userEntity) throws CustomizeException {
@@ -138,6 +142,9 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
+    @Authorization(orConditions = {
+            @Authorization.AuthorizationCondition(grantGroup = GroupPrivilege.ROOT_GROUP),
+    })
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public ResponseEntity<List<UserEntity>> getUsers(
             @RequestParam(name = "username", required = false) String username,
