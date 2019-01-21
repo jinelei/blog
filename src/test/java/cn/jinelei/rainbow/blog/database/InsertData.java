@@ -19,13 +19,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Random;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(properties = "home", classes = BlogApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        classes = BlogApplication.class,
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class InsertData {
 
     @Value("classpath:province-city.json")
     private Resource provinceCityJSON;
-
-    private String[] emails = new String[]{"jinelei@163.com", "jinelei@gmail.com", "52224984@qq.com", "yumely@163.com"};
 
     @Autowired
     UserRepository userRepository;
@@ -46,7 +46,6 @@ public class InsertData {
             userEntity.setNickname("nickname" + index);
             userEntity.setProvince(provinceObject.getString("provinceName"));
             userEntity.setCity(cityArray.getJSONObject(random.nextInt(cityArray.length())).getString("cityName"));
-            userEntity.setEmail(emails[random.nextInt(emails.length)]);
             userEntity.setEmail(String.format("username%d@163.com", index));
             userEntity.setPhone(String.valueOf(phoneNumber++));
             switch (random.nextInt(3)) {
@@ -74,14 +73,5 @@ public class InsertData {
             userRepository.save(userEntity);
         }
     }
-
-//    @Test
-//    public void testCity() throws Exception {
-//        System.out.println(provinceCityJSON);
-//        String res = FileUtils.fileRead(provinceCityJSON.getFile());
-//        JSONObject jsonObject = new JSONObject(res);
-//        System.out.println(jsonObject);
-//        System.out.println(jsonObject.getJSONArray("四川省"));
-//    }
 
 }
