@@ -19,7 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.Random;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(properties = "home",classes = BlogApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(properties = "home", classes = BlogApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class InsertData {
 
     @Value("classpath:province-city.json")
@@ -37,7 +37,7 @@ public class InsertData {
         UserEntity userEntity = null;
         Random random = new Random();
         Long phoneNumber = 13100000000L;
-        for (int index = 0; index < 200; index++) {
+        for (int index = 1; index < 21; index++) {
             JSONObject provinceObject = jsonArray.getJSONObject(random.nextInt(jsonArray.length()));
             JSONArray cityArray = provinceObject.getJSONArray("cities");
             userEntity = new UserEntity();
@@ -47,8 +47,9 @@ public class InsertData {
             userEntity.setProvince(provinceObject.getString("provinceName"));
             userEntity.setCity(cityArray.getJSONObject(random.nextInt(cityArray.length())).getString("cityName"));
             userEntity.setEmail(emails[random.nextInt(emails.length)]);
+            userEntity.setEmail(String.format("username%d@163.com", index));
             userEntity.setPhone(String.valueOf(phoneNumber++));
-            switch (random.nextInt(3)){
+            switch (random.nextInt(3)) {
                 case 0:
                     userEntity.setGroupPrivilege(GroupPrivilege.TOURIST_GROUP);
                     break;
@@ -59,7 +60,7 @@ public class InsertData {
                     userEntity.setGroupPrivilege(GroupPrivilege.ROOT_GROUP);
                     break;
             }
-            switch (random.nextInt(3)){
+            switch (random.nextInt(3)) {
                 case 0:
                     userEntity.setUserPrivilege(UserPrivilege.TOURIST_USER);
                     break;

@@ -1,8 +1,8 @@
 package cn.jinelei.rainbow.blog.exception.handler;
 
 
-import cn.jinelei.rainbow.blog.exception.CustomizeException;
-import cn.jinelei.rainbow.blog.view.ErrorView;
+import cn.jinelei.rainbow.blog.exception.BlogException;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class GlobalExceptionhandler {
 
-    @ExceptionHandler(value = {CustomizeException.class})
+    @ExceptionHandler(value = {BlogException.class})
     @ResponseBody
-    public ResponseEntity<ErrorView> handleCustomizeException(CustomizeException e) {
-        return new ResponseEntity<ErrorView>(new ErrorView(e), HttpStatus.BAD_REQUEST);
+    @JsonAnyGetter
+    public ResponseEntity<BlogException> handleBlogException(BlogException e) {
+        return new ResponseEntity<BlogException>(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {Exception.class})

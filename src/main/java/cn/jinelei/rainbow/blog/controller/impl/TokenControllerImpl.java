@@ -6,9 +6,7 @@ import cn.jinelei.rainbow.blog.controller.TokenController;
 import cn.jinelei.rainbow.blog.entity.TokenEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
-import cn.jinelei.rainbow.blog.entity.enumerate.OperatorPrivilege;
-import cn.jinelei.rainbow.blog.exception.CustomizeException;
-import cn.jinelei.rainbow.blog.exception.enumerate.UserExceptionEnum;
+import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import cn.jinelei.rainbow.blog.service.impl.TokenServiceTestImpl;
@@ -37,9 +35,9 @@ public class TokenControllerImpl implements TokenController {
     @Override
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity login(@RequestParam String username, @RequestParam String password)
-            throws CustomizeException {
+            throws BlogException {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
-            throw new CustomizeException(UserExceptionEnum.NEED_FIELD);
+            throw new BlogException.NeedField();
         }
         UserEntity user = userService.validUserByUsernameAndPassword(username, password);
         TokenEntity tokenEntity = tokenService.createToken(user);
@@ -53,7 +51,7 @@ public class TokenControllerImpl implements TokenController {
             @Authorization.AuthorizationCondition(grantGroup = GroupPrivilege.TOURIST_GROUP)
     })
     @RequestMapping(method = RequestMethod.DELETE)
-    public ResponseEntity logout(@CurrentUser UserEntity user) throws CustomizeException {
+    public ResponseEntity logout(@CurrentUser UserEntity user) throws BlogException {
         tokenService.deleteToken(user);
         return ResponseEntity.ok("注销成功");
     }

@@ -16,23 +16,23 @@ import java.util.Objects;
 public class TagEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "tag_id")
+    @Column(name = "tag_id", nullable = false, unique = false)
     @XmlElement
     private Integer tagId;
     @XmlElement
-    @Column(name = "create_time")
+    @Column(name = "create_time", nullable = false)
     private Long createTime;
     @XmlElement
-    @Column(name = "modify_time")
+    @Column(name = "modify_time", nullable = true)
     private Long modifyTime;
     @XmlElement
-    @Column(name = "access_time")
+    @Column(name = "access_time", nullable = true)
     private Long accessTime;
     @XmlElement
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false, length = 20)
     private String name;
     @XmlElement
-    @Column(name = "summarty")
+    @Column(name = "summarty", nullable = true, length = 255)
     private String summary;
     @XmlElement
     @ManyToMany(targetEntity = ArticleEntity.class, mappedBy = "tags")

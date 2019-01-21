@@ -16,19 +16,19 @@ public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
-    @Column(name = "comment_id")
+    @Column(name = "comment_id", unique = true, nullable = false)
     private Integer commentId;
     @XmlElement
-    @Column(name = "create_time")
+    @Column(name = "create_time", nullable = false)
     private Long createTime;
     @XmlElement
-    @Column(name = "modify_time")
+    @Column(name = "modify_time", nullable = true)
     private Long modifyTime;
     @XmlElement
-    @Column(name = "access_time")
+    @Column(name = "access_time", nullable = true)
     private Long accessTime;
     @XmlElement
-    @Column(name = "content")
+    @Column(name = "content", nullable = false, length = 255)
     private String content;
     @XmlElement
     @ManyToOne(targetEntity = UserEntity.class)

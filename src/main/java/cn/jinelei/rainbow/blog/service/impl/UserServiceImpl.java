@@ -1,8 +1,7 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
 import cn.jinelei.rainbow.blog.entity.UserEntity;
-import cn.jinelei.rainbow.blog.exception.CustomizeException;
-import cn.jinelei.rainbow.blog.exception.enumerate.UserExceptionEnum;
+import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.repository.UserRepository;
 import cn.jinelei.rainbow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,56 +32,56 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     @Override
-    @Transactional(rollbackFor = {CustomizeException.class, Exception.class})
-    public UserEntity addUser(UserEntity userEntity) throws CustomizeException {
+    @Transactional(rollbackFor = {BlogException.class, Exception.class})
+    public UserEntity addUser(UserEntity userEntity) throws BlogException {
         UserEntity saveResult = userRepository.save(userEntity);
         if (!saveResult.equalsWithId(userEntity)) {
-            throw new CustomizeException(UserExceptionEnum.INSERT_DATA_ERROR);
+            throw new BlogException.InsertDataError();
         }
         return saveResult;
     }
 
     @Override
-    @Transactional(rollbackFor = {CustomizeException.class, Exception.class})
-    public void removeUser(UserEntity userEntity) throws CustomizeException {
+    @Transactional(rollbackFor = {BlogException.class, Exception.class})
+    public void removeUser(UserEntity userEntity) throws BlogException {
         userRepository.delete(userEntity);
     }
 
     @Override
-    @Transactional(rollbackFor = {CustomizeException.class, Exception.class})
-    public UserEntity updateUser(UserEntity userEntity) throws CustomizeException {
+    @Transactional(rollbackFor = {BlogException.class, Exception.class})
+    public UserEntity updateUser(UserEntity userEntity) throws BlogException {
         UserEntity saveResult = userRepository.save(userEntity);
         if (!saveResult.equalsWithId(userEntity)) {
-            throw new CustomizeException(UserExceptionEnum.UPDATE_DATA_ERROR);
+            throw new BlogException.UpdateDataError();
         }
         return saveResult;
     }
 
     @Override
-    @Transactional(rollbackFor = {CustomizeException.class, Exception.class})
-    public UserEntity findUserById(Integer id) throws CustomizeException {
+    @Transactional(rollbackFor = {BlogException.class, Exception.class})
+    public UserEntity findUserById(Integer id) throws BlogException {
         Optional<UserEntity> findResult = userRepository.findById(id);
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new CustomizeException(UserExceptionEnum.USER_NOT_FOUND);
+            throw new BlogException.UserNotFound();
         }
     }
 
     @Override
-    public UserEntity validUserByUsernameAndPassword(String username, String password) throws CustomizeException {
+    public UserEntity validUserByUsernameAndPassword(String username, String password) throws BlogException {
         List<UserEntity> userEntities = userRepository.findUserEntitiesByUsernameAndPassword(username, password);
         if (userEntities.size() == 1) {
             return userEntities.get(0);
         } else if (userEntities.size() > 1) {
-            throw new CustomizeException(UserExceptionEnum.USERNAME_NOT_UNIQUE);
+            throw new BlogException.UsernameNotUnique();
         } else {
-            throw new CustomizeException(UserExceptionEnum.USERNAME_OR_PASSWORD_INVAILD);
+            throw new BlogException.UsernameOrPasswordInvalid();
         }
     }
 
     @Override
-    public List<UserEntity> findUserList(String username, String nickname, String phone, String city, String province, String email, Integer page, Integer size, String[] descFilters, String[] ascFilters) throws CustomizeException {
+    public List<UserEntity> findUserList(String username, String nickname, String phone, String city, String province, String email, Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException {
         // 设置查询条件
         Specification<UserEntity> specification = new Specification<UserEntity>() {
             @Override

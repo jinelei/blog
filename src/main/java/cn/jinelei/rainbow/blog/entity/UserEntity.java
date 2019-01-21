@@ -22,32 +22,32 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
     private Integer userId;
-    @Column
+    @Column(unique = true, length = 20)
     @XmlElement
     private String username;
-    @Column
+    @Column(nullable = true, length = 20)
     @XmlElement
     private String nickname;
-    @Column
+    @Column(nullable = false, length = 255)
     @XmlElement
     private String password;
-    @Column
+    @Column(nullable = false, unique = true, length = 20)
     @XmlElement
     private String phone;
-    @Column
+    @Column(nullable = true, unique = true, length = 30)
     @XmlElement
     private String email;
-    @Column
+    @Column(nullable = true, length = 10)
     @XmlElement
     private String province;
-    @Column
+    @Column(nullable = true, length = 20)
     @XmlElement
     private String city;
-    @Column
+    @Column(nullable = false)
     @XmlElement
     @Convert(converter = UserPrivilegeConvert.class)
     private UserPrivilege userPrivilege = UserPrivilege.TOURIST_USER;
-    @Column
+    @Column(nullable = false)
     @XmlElement
     @Convert(converter = GroupPrivilegeConvert.class)
     private GroupPrivilege groupPrivilege = GroupPrivilege.TOURIST_GROUP;

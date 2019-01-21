@@ -16,23 +16,23 @@ import java.util.Objects;
 public class CategoryEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "category_id")
+    @Column(name = "category_id", unique = true, nullable = false)
     @XmlElement
     private Integer categoryId;
     @XmlElement
-    @Column(name = "create_time")
+    @Column(name = "create_time", nullable = false)
     private Long createTime;
     @XmlElement
-    @Column(name = "modify_time")
+    @Column(name = "modify_time", nullable = true)
     private Long modifyTime;
     @XmlElement
-    @Column(name = "access_time")
+    @Column(name = "access_time", nullable = true)
     private Long accessTime;
     @XmlElement
-    @Column(name = "name")
+    @Column(name = "name", unique = true, nullable = false, length = 20)
     private String name;
     @XmlElement
-    @Column(name = "summary")
+    @Column(name = "summarty", nullable = true, length = 255)
     private String summary;
     @XmlElement
     @OneToMany(targetEntity = ArticleEntity.class, mappedBy = "category")

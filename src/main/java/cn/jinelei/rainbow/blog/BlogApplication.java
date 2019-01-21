@@ -33,7 +33,8 @@ public class BlogApplication extends WebMvcConfigurerAdapter {
         // 多个拦截器组成一个拦截器链
         // addPathPatterns 用于添加拦截规则
         // excludePathPatterns 用于排除拦截
-        registry.addInterceptor(authorizationInterceptor).addPathPatterns("/**");
+//        registry.addInterceptor(authorizationInterceptor).addPathPatterns("/**");
+        registry.addInterceptor(currentUserArgumentResolver).addPathPatterns("/**");
         super.addInterceptors(registry);
     }
 
