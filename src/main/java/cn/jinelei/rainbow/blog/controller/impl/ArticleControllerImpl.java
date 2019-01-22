@@ -65,7 +65,11 @@ public class ArticleControllerImpl implements ArticleController {
                 && !operator.getUserId().equals(articleEntity.getAuthor().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        articleEntity.setAuthor(userService.findUserById(articleEntity.getAuthor().getUserId()));
+        if (articleEntity.getAuthor() == null) {
+            articleEntity.setAuthor(operator);
+        } else {
+            articleEntity.setAuthor(userService.findUserById(articleEntity.getAuthor().getUserId()));
+        }
         ArticleEntity opeartionResult = null;
         opeartionResult = articleService.addArticle(articleEntity);
         HttpHeaders httpHeaders = new HttpHeaders();

@@ -65,7 +65,11 @@ public class TagControllerImpl implements TagController {
                 && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
+        if (tagEntity.getTagCreator() == null) {
+            tagEntity.setTagCreator(operator);
+        } else {
+            tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
+        }
         TagEntity opeartionResult = null;
         opeartionResult = tagService.addTag(tagEntity);
         HttpHeaders httpHeaders = new HttpHeaders();

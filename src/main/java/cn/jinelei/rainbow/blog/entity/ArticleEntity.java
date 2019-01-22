@@ -19,7 +19,7 @@ import java.util.Objects;
 @JacksonXmlRootElement(localName = "article")
 @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class ArticleEntity {
-    public interface BaseArticleView extends UserEntity.WithoutPasswordView, TagEntity.BaseTagView, CategoryEntity.BaseCategoryView, CommentEntity.BaseCommentView {
+    public interface BaseArticleView extends UserEntity.WithoutPasswordView{
     }
 
     @Id

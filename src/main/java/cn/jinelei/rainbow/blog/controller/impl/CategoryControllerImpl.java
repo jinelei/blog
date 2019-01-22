@@ -65,7 +65,11 @@ public class CategoryControllerImpl implements CategoryController {
                 && !operator.getUserId().equals(categoryEntity.getCategoryCreator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        categoryEntity.setCategoryCreator(userService.findUserById(categoryEntity.getCategoryCreator().getUserId()));
+        if (categoryEntity.getCategoryCreator() == null) {
+            categoryEntity.setCategoryCreator(operator);
+        } else {
+            categoryEntity.setCategoryCreator(userService.findUserById(categoryEntity.getCategoryCreator().getUserId()));
+        }
         CategoryEntity opeartionResult = null;
         opeartionResult = categoryService.addCategory(categoryEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
