@@ -104,4 +104,28 @@ public class BlogException extends Exception {
         BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UNAUTHORIZED_GROUP;
     }
 
+    public static class UserLoginSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGIN_SUCCESS;
+    }
+
+    public static class UserLoginFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGIN_FAILED;
+    }
+
+    public static class UserLogoutSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGOUT_SUCCESS;
+    }
+
+    public static class UserLogoutFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGOUT_FAILED;
+    }
+
+    public static class TokenIsExpired extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TOKEN_IS_EXPIRED;
+    }
+
+    public static class TokenNotEffective extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TOKEN_NOT_EFFECTIVE;
+    }
+
 }

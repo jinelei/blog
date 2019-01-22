@@ -12,6 +12,8 @@ public enum BlogExceptionEnum {
     UPDATE_DATA_ERROR(900002, "update data error"),
     DELETE_DATA_ERROR(900004, "remove data error"),
     QUERY_DATA_ERROR(900008, "query data error"),
+    TOKEN_NOT_EFFECTIVE(900016, "token not effective"),
+    TOKEN_IS_EXPIRED(900032, "token is expired"),
     /**
      * 用户错误码
      */
@@ -25,6 +27,10 @@ public enum BlogExceptionEnum {
     NEED_FIELD(800064, "need field"),
     UNAUTHORIZED_USER(800128, "unauthorized user"),
     UNAUTHORIZED_GROUP(800256, "unauthorized group"),
+    USER_LOGIN_SUCCESS(800512, "user login success"),
+    USER_LOGIN_FAILED(801024, "user login failed"),
+    USER_LOGOUT_SUCCESS(802048, "user logout success"),
+    USER_LOGOUT_FAILED(804096, "user logout failed"),
     /**
      * 保留错误码
      */

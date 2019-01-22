@@ -6,4 +6,5 @@ package cn.jinelei.rainbow.blog.constant;
 public class Constants {
     public static final String AUTHORIZATION = "authorization";
     public static final String CURRENT_USER_ID = "current_user_id";
+    public static final String REQUIRED_USER= "required_user";
 }

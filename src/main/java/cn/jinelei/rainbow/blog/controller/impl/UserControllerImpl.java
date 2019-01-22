@@ -52,7 +52,7 @@ public class UserControllerImpl implements UserController {
     @RequestMapping(value = "/user", method = RequestMethod.POST)
     public ResponseEntity<UserEntity> saveEntity(
             @RequestBody UserEntity userEntity,
-            @CurrentUser UserEntity operator) throws BlogException {
+            @CurrentUser(require = false) UserEntity operator) throws BlogException {
         UserEntity opeartionResult = userService.addUser(userEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
         URI locationUrl = URI.create(String.format("http://%s:%d/user/id/%d",

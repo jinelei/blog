@@ -43,31 +43,31 @@ public class CurrentUserArgumentResolver extends HandlerInterceptorAdapter imple
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
         boolean isCurrentUser = false;
+        boolean isCurrentUserRequire = true;
         for (Parameter parameter : method.getParameters()) {
-            if (parameter.getAnnotation(CurrentUser.class) != null) {
+            CurrentUser currentUser = parameter.getAnnotation(CurrentUser.class);
+            if (currentUser != null) {
                 isCurrentUser = true;
+                isCurrentUserRequire = currentUser.require();
             }
         }
-        if(isCurrentUser){
-           return true;
+        if (isCurrentUserRequire && !isCurrentUser) {
+            return true;
         }
-//        if (method.getAnnotation(Authorization.class) == null) {
-//            return true;
-//        }
-//        Authorization authorization = method.getAnnotation(Authorization.class);
-//        if (authorization == null) {
-//            return true;
-//        }
         String authorizationToken = request.getHeader(Constants.AUTHORIZATION);
+        TokenEntity tokenEntity = null;
         if (!StringUtils.isEmpty(authorizationToken)) {
             authorizationToken = authorizationToken.split(" ")[1];
+            tokenEntity = tokenService.getToken(authorizationToken);
         }
-        TokenEntity tokenEntity = tokenService.getToken(authorizationToken);
-        if (tokenEntity == null) {
+        if (isCurrentUserRequire && tokenEntity == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return false;
         }
-        request.setAttribute(Constants.CURRENT_USER_ID, tokenEntity.getUserEntity().getUserId());
+        if (tokenEntity != null) {
+            request.setAttribute(Constants.CURRENT_USER_ID, tokenEntity.getUserEntity().getUserId());
+        }
+        request.setAttribute(Constants.REQUIRED_USER, isCurrentUserRequire);
         return true;
     }
 
@@ -82,11 +82,16 @@ public class CurrentUserArgumentResolver extends HandlerInterceptorAdapter imple
                                   ModelAndViewContainer container,
                                   NativeWebRequest request,
                                   WebDataBinderFactory factory) throws BlogException {
-        String currentUserId = (String) request.getAttribute(Constants.CURRENT_USER_ID, RequestAttributes.SCOPE_REQUEST);
+        Object currentUserId = request.getAttribute(Constants.CURRENT_USER_ID, RequestAttributes.SCOPE_REQUEST);
+        Object requiredUser = request.getAttribute(Constants.REQUIRED_USER, RequestAttributes.SCOPE_REQUEST);
         if (currentUserId != null) {
-            return userService.findUserById(Integer.valueOf(currentUserId));
+            return userService.findUserById(Integer.valueOf(currentUserId.toString()));
         } else {
-            throw new BlogException.UserNotLogin();
+            if (Boolean.getBoolean(requiredUser.toString())) {
+                throw new BlogException.UserNotLogin();
+            } else {
+                return null;
+            }
         }
     }
 }
