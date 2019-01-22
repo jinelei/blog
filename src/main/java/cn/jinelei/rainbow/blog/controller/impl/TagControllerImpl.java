@@ -45,7 +45,7 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE
         })
 public class TagControllerImpl implements TagController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserControllerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TagControllerImpl.class);
     @Autowired
     HttpServletRequest request;
 

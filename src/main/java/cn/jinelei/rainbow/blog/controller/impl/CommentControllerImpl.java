@@ -45,7 +45,7 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE
         })
 public class CommentControllerImpl implements CommentController {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserControllerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommentControllerImpl.class);
     @Autowired
     HttpServletRequest request;
 
