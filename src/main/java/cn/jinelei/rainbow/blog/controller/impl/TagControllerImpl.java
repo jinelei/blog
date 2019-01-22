@@ -1,10 +1,12 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
-import cn.jinelei.rainbow.blog.controller.UserController;
+import cn.jinelei.rainbow.blog.controller.TagController;
+import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.service.TagService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,105 +44,103 @@ import java.util.Map;
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_XML_VALUE
         })
-@JsonView(value = UserEntity.WithoutPasswordView.class)
-public class UserControllerImpl implements UserController {
+public class TagControllerImpl implements TagController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserControllerImpl.class);
     @Autowired
     HttpServletRequest request;
 
     @Autowired
+    TagService tagService;
+
+    @Autowired
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> saveEntity(
-            @RequestBody UserEntity userEntity,
-            @CurrentUser(require = false) UserEntity operator) throws BlogException {
-        UserEntity opeartionResult = userService.addUser(userEntity);
+    @RequestMapping(value = "/tag", method = RequestMethod.POST)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<TagEntity> saveEntity(
+            @RequestBody TagEntity tagEntity,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
+            throw new BlogException.UnAuthorized();
+        }
+        tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
+        TagEntity opeartionResult = null;
+        opeartionResult = tagService.addTag(tagEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
-        URI locationUrl = URI.create(String.format("http://%s:%d/user?id=%d",
-                request.getLocalName(), request.getLocalPort(), opeartionResult.getUserId()));
+        URI locationUrl = URI.create(String.format("http://%s:%d/tag?id=%d",
+                request.getLocalName(), request.getLocalPort(), opeartionResult.getTagId()));
         httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<UserEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return new ResponseEntity<TagEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> updateEntity(
-            @RequestBody UserEntity userEntity,
+    @RequestMapping(value = "/tag", method = RequestMethod.PUT)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<TagEntity> updateEntity(
+            @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(userEntity.getUserId())) {
+                && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        UserEntity tmp = userService.findUserById(userEntity.getUserId());
-        if (!StringUtils.isEmpty(userEntity.getNickname())) {
-            tmp.setNickname(userEntity.getNickname());
+        TagEntity tmp = tagService.findTagById(tagEntity.getTagId());
+        if (!StringUtils.isEmpty(tagEntity.getName())) {
+            tmp.setName(tagEntity.getName());
         }
-        if (!StringUtils.isEmpty(userEntity.getPhone())) {
-            tmp.setPhone(userEntity.getPhone());
+        if (!StringUtils.isEmpty(tagEntity.getSummary())) {
+            tmp.setSummary(tagEntity.getSummary());
         }
-        if (!StringUtils.isEmpty(userEntity.getEmail())) {
-            tmp.setEmail(userEntity.getEmail());
-        }
-        if (!StringUtils.isEmpty(userEntity.getPassword())) {
-            tmp.setPassword(userEntity.getPassword());
-        }
-        if (!StringUtils.isEmpty(userEntity.getProvince())) {
-            tmp.setProvince(userEntity.getProvince());
-        }
-        if (!StringUtils.isEmpty(userEntity.getCity())) {
-            tmp.setCity(userEntity.getCity());
-        }
-        userService.updateUser(tmp);
+        Instant now = Instant.now();
+        tmp.setAccessTime(now.toEpochMilli());
+        tmp.setModifyTime(now.toEpochMilli());
+        tagService.updateTag(tmp);
         return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    @RequestMapping(value = "/tag", method = RequestMethod.DELETE)
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException.DeleteUserSuccess, BlogException {
-        UserEntity tmp = userService.findUserById(id);
+            @CurrentUser UserEntity operator) throws BlogException {
+        TagEntity tmp = tagService.findTagById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         try {
-            userService.removeUser(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteUserSuccess(), HttpStatus.OK);
+            tagService.removeTag(tmp);
+            return new ResponseEntity<>(new BlogException.DeleteTagSuccess(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteUserFailed();
+            throw new BlogException.DeleteTagFailed();
         }
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> queryEntityById(
+    @RequestMapping(value = "/tag", method = RequestMethod.GET)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<TagEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
-        UserEntity tmp = userService.findUserById(id);
+        TagEntity tmp = tagService.findTagById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> saveEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/tags", method = RequestMethod.POST)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<List<TagEntity>> saveEntities(
+            @RequestBody List<TagEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<TagEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = saveEntity(tmp, operator);
+            for (TagEntity tmp : list) {
+                ResponseEntity<TagEntity> res = saveEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -159,15 +160,15 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> updateEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/tags", method = RequestMethod.PUT)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<List<TagEntity>> updateEntities(
+            @RequestBody List<TagEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<TagEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = updateEntity(tmp, operator);
+            for (TagEntity tmp : list) {
+                ResponseEntity<TagEntity> res = updateEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -187,18 +188,18 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> deleteEntitiesById(
+    @RequestMapping(value = "/tags", method = RequestMethod.DELETE)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<List<TagEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateFailed = new ArrayList<>(ids.size());
+        List<TagEntity> operateFailed = new ArrayList<>(ids.size());
         try {
             for (Integer id : ids) {
                 try {
                     ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (!HttpStatus.OK.equals(res.getStatusCode())) {
-                        operateFailed.add(userService.findUserById(id));
+                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
+                        operateFailed.add(tagService.findTagById(id));
                     }
                 } catch (Exception e) {
                     continue;
@@ -219,23 +220,23 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> queryEntities(
+    @RequestMapping(value = "/tags", method = RequestMethod.GET)
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public ResponseEntity<List<TagEntity>> queryEntities(
             Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String username = params.getOrDefault("username", "").toString();
-        String nickname = params.getOrDefault("nickname", "").toString();
-        String phone = params.getOrDefault("phone", "").toString();
-        String city = params.getOrDefault("city", "").toString();
-        String province = params.getOrDefault("province", "").toString();
-        String email = params.getOrDefault("email", "").toString();
+        String name = params.getOrDefault("name", "").toString();
+        String summary = params.getOrDefault("summary", "").toString();
+        String userId = params.getOrDefault("user_id", "").toString();
+        UserEntity userEntity = null;
+        if (StringUtils.isEmpty(userId)) {
+            userEntity = userService.findUserById(Integer.valueOf(userId));
+        }
         Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
         Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
         String[] descFilters = new String[]{};
         String[] ascFilters = new String[]{};
-        List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<UserEntity>>(userEntities, HttpStatus.OK);
+        List<TagEntity> tagEntities = tagService.findTagList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        return new ResponseEntity<List<TagEntity>>(tagEntities, HttpStatus.OK);
     }
-
 }

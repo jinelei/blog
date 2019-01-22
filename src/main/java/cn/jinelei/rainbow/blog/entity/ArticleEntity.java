@@ -1,6 +1,10 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hibernate.cache.spi.entry.CacheEntry;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
@@ -13,44 +17,59 @@ import java.util.Objects;
 @Entity
 @Table(name = "article")
 @JacksonXmlRootElement(localName = "article")
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class ArticleEntity {
+    public interface BaseArticleView extends UserEntity.WithoutPasswordView, TagEntity.BaseTagView, CategoryEntity.BaseCategoryView, CommentEntity.BaseCommentView {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
     @Column(name = "article_id", unique = true, nullable = false)
+    @JsonView(value = BaseArticleView.class)
     private Integer articleId;
     @XmlElement
     @Column(name = "create_time", nullable = false)
+    @JsonView(value = BaseArticleView.class)
     private Long createTime;
     @XmlElement
     @Column(name = "modify_time", nullable = true)
+    @JsonView(value = BaseArticleView.class)
     private Long modifyTime;
     @XmlElement
     @Column(name = "access_time", nullable = true)
+    @JsonView(value = BaseArticleView.class)
     private Long accessTime;
     @XmlElement
     @Column(name = "title", nullable = false, length = 127)
+    @JsonView(value = BaseArticleView.class)
     private String title;
     @XmlElement
     @Column(name = "content", nullable = false, length = 4095)
+    @JsonView(value = BaseArticleView.class)
     private String content;
     @XmlElement
     @ManyToOne(targetEntity = UserEntity.class)
     @JoinColumn(name = "author", nullable = false)
+    @JsonView(value = BaseArticleView.class)
     private UserEntity author;
     @XmlElement
     @ManyToOne(targetEntity = CategoryEntity.class)
     @JoinColumn(name = "category")
+    @JsonView(value = BaseArticleView.class)
     private CategoryEntity category;
     @XmlElement
     @ManyToMany
     @JoinTable(name = "article_tag",
             joinColumns = {@JoinColumn(name = "article_id", referencedColumnName = "article_id")},
             inverseJoinColumns = {@JoinColumn(name = "tag_id", referencedColumnName = "tag_id")})
+    @JsonView(value = BaseArticleView.class)
     private List<TagEntity> tags;
     @Column
     @XmlElement
+    @JsonIgnore
     @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "article")
+    @JsonView(value = BaseArticleView.class)
     private List<CommentEntity> comments;
 
     public boolean equalsWithoutId(Object o) {
@@ -88,7 +107,6 @@ public class ArticleEntity {
     }
 
     public Integer getArticleId() {
-
         return articleId;
     }
 
@@ -120,6 +138,14 @@ public class ArticleEntity {
         this.accessTime = accessTime;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getContent() {
         return content;
     }
@@ -144,26 +170,6 @@ public class ArticleEntity {
         this.category = category;
     }
 
-    public List<TagEntity> getTagList() {
-        return tags;
-    }
-
-    public void setTagList(List<TagEntity> tags) {
-        this.tags = tags;
-    }
-
-    public List<CommentEntity> getCommentList() {
-        return comments;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
     public List<TagEntity> getTags() {
         return tags;
     }
@@ -179,9 +185,4 @@ public class ArticleEntity {
     public void setComments(List<CommentEntity> comments) {
         this.comments = comments;
     }
-
-    public void setCommentList(List<CommentEntity> comments) {
-        this.comments = comments;
-    }
 }
-

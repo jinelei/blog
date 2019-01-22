@@ -1,8 +1,11 @@
 package cn.jinelei.rainbow.blog.exception.handler;
 
 
+import cn.jinelei.rainbow.blog.entity.TagEntity;
+import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,12 +17,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @ControllerAdvice
 public class GlobalExceptionhandler {
-
-    @ExceptionHandler(value = {BlogException.DeleteUserSuccess.class})
-    @ResponseBody
-    public ResponseEntity<BlogException> handleSuccessBlogException(BlogException e) {
-        return new ResponseEntity<BlogException>(e, HttpStatus.OK);
-    }
 
     @ExceptionHandler(value = {BlogException.class})
     @ResponseBody

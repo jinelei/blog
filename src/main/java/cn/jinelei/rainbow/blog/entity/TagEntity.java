@@ -1,6 +1,10 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
@@ -13,33 +17,45 @@ import java.util.Objects;
 @Entity
 @Table(name = "tag")
 @JacksonXmlRootElement(localName = "tag")
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class TagEntity {
+    public interface BaseTagView extends UserEntity.WithoutPasswordView{
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tag_id", nullable = false, unique = false)
     @XmlElement
+    @JsonView(value = BaseTagView.class)
     private Integer tagId;
     @XmlElement
     @Column(name = "create_time", nullable = false)
+    @JsonView(value = BaseTagView.class)
     private Long createTime;
     @XmlElement
     @Column(name = "modify_time", nullable = true)
+    @JsonView(value = BaseTagView.class)
     private Long modifyTime;
     @XmlElement
     @Column(name = "access_time", nullable = true)
+    @JsonView(value = BaseTagView.class)
     private Long accessTime;
     @XmlElement
-    @Column(name = "name", unique = true, nullable = false, length = 20)
+    @Column(name = "name", nullable = false, length = 20)
+    @JsonView(value = BaseTagView.class)
     private String name;
     @XmlElement
     @Column(name = "summarty", nullable = true, length = 255)
+    @JsonView(value = BaseTagView.class)
     private String summary;
     @XmlElement
-    @ManyToMany(targetEntity = ArticleEntity.class, mappedBy = "tags")
+    @ManyToMany(targetEntity = ArticleEntity.class, mappedBy = "tags", fetch = FetchType.LAZY)
+    @JsonView(value = BaseTagView.class)
     private List<ArticleEntity> articles;
     @XmlElement
-    @ManyToOne(targetEntity = UserEntity.class)
+    @ManyToOne(targetEntity = UserEntity.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "tagCreator")
+    @JsonView(value = BaseTagView.class)
     private UserEntity tagCreator;
 
     public boolean equalsWithoutId(Object o) {

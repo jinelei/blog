@@ -39,7 +39,7 @@ public interface EntityController<T> {
      * @return 失败返回失败的实例
      * @throws BlogException 成功抛出成功异常
      */
-    ResponseEntity<UserEntity> deleteEntityById(Integer id, UserEntity operator) throws BlogException;
+    ResponseEntity<BlogException> deleteEntityById(Integer id, UserEntity operator) throws BlogException;
 
     /**
      * 查询实例

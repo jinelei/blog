@@ -4,6 +4,9 @@ import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.UserPrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.convert.GroupPrivilegeConvert;
 import cn.jinelei.rainbow.blog.entity.enumerate.convert.UserPrivilegeConvert;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -19,59 +22,77 @@ import java.util.Objects;
 @Entity
 @Table(name = "user")
 @JacksonXmlRootElement(localName = "user")
+@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler", "fieldHandler"})
 public class UserEntity {
+    public interface WithoutPasswordView {};
+    public interface WithPasswordView extends WithoutPasswordView {};
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private Integer userId;
     @Column(unique = true, length = 20)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String username;
     @Column(nullable = true, length = 20)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String nickname;
     @Column(nullable = false, length = 255)
     @XmlElement
+    @JsonView(WithPasswordView.class)
     private String password;
     @Column(nullable = false, unique = true, length = 20)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String phone;
     @Column(nullable = true, unique = true, length = 30)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String email;
     @Column(nullable = true, length = 10)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String province;
     @Column(nullable = true, length = 20)
     @XmlElement
+    @JsonView(WithoutPasswordView.class)
     private String city;
     @Column(nullable = false)
     @XmlElement
     @Convert(converter = UserPrivilegeConvert.class)
+    @JsonView(WithoutPasswordView.class)
     private UserPrivilege userPrivilege = UserPrivilege.TOURIST_USER;
     @Column(nullable = false)
     @XmlElement
     @Convert(converter = GroupPrivilegeConvert.class)
+    @JsonView(WithoutPasswordView.class)
     private GroupPrivilege groupPrivilege = GroupPrivilege.TOURIST_GROUP;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = ArticleEntity.class, cascade = CascadeType.REFRESH, mappedBy = "author", fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SELECT)
+    @JsonIgnore
+    @OneToMany(targetEntity = ArticleEntity.class, cascade = CascadeType.REFRESH, mappedBy = "author", fetch = FetchType.LAZY)
+    @JsonView(WithoutPasswordView.class)
     private List<ArticleEntity> articles;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = CategoryEntity.class, cascade = CascadeType.REFRESH, mappedBy = "categoryCreator", fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SELECT)
+    @JsonIgnore
+    @OneToMany(targetEntity = CategoryEntity.class, cascade = CascadeType.REFRESH, mappedBy = "categoryCreator", fetch = FetchType.LAZY)
+    @JsonView(WithoutPasswordView.class)
     private List<CategoryEntity> categories;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.REFRESH, mappedBy = "tagCreator", fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SELECT)
+    @JsonIgnore
+    @OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.REFRESH, mappedBy = "tagCreator", fetch = FetchType.LAZY)
+    @JsonView(WithoutPasswordView.class)
     private List<TagEntity> tags;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "commentator", fetch = FetchType.EAGER)
-    @Fetch(FetchMode.SELECT)
+    @JsonIgnore
+    @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "commentator", fetch = FetchType.LAZY)
+    @JsonView(WithoutPasswordView.class)
     private List<CommentEntity> comments;
 
     public boolean equalsWithId(Object o) {

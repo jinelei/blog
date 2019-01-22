@@ -34,6 +34,34 @@ public enum BlogExceptionEnum {
     DELETE_USER_SUCCESS(808192, "delete user success"),
     DELETE_USER_FAILED(816384, "delete user failed"),
     /**
+     * 标签错误码
+     */
+    TAG_NOT_FOUND(700000, "tag not found"),
+    DELETE_TAG_SUCCESS(700001, "delete tag success"),
+    DELETE_TAG_FAILED(700002, "delete tag failed"),
+    TAG_ALREADY_EXIST(700004, "tag already exist"),
+    /**
+     * 分类错误码
+     */
+    CATEGORY_NOT_FOUND(600000, "category not found"),
+    DELETE_CATEGORY_SUCCESS(600001, "delete category success"),
+    DELETE_CATEGORY_FAILED(600002, "delete category failed"),
+    CATEGORY_ALREADY_EXIST(600004, "category already exist"),
+    /**
+     * 评论错误码
+     */
+    COMMENT_NOT_FOUND(500000, "comment not found"),
+    DELETE_COMMENT_SUCCESS(500001, "delete comment success"),
+    DELETE_COMMENT_FAILED(500002, "delete comment failed"),
+    COMMENT_ALREADY_EXIST(500004, "comment already exist"),
+    /**
+     * 文章错误码
+     */
+    ARTICLE_NOT_FOUND(400000, "article not found"),
+    DELETE_ARTICLE_SUCCESS(400001, "delete article success"),
+    DELETE_ARTICLE_FAILED(400002, "delete article failed"),
+    ARTICLE_ALREADY_EXIST(400004, "article already exist"),
+    /**
      * 保留错误码
      */
     UNKNOWN_ERROR(999999, "unknown error");
@@ -57,4 +85,5 @@ public enum BlogExceptionEnum {
         this.code = code;
         this.message = message;
     }
+
 }

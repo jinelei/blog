@@ -1,10 +1,12 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
-import cn.jinelei.rainbow.blog.controller.UserController;
+import cn.jinelei.rainbow.blog.controller.CommentController;
+import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.service.CommentService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,105 +44,100 @@ import java.util.Map;
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_XML_VALUE
         })
-@JsonView(value = UserEntity.WithoutPasswordView.class)
-public class UserControllerImpl implements UserController {
+public class CommentControllerImpl implements CommentController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserControllerImpl.class);
     @Autowired
     HttpServletRequest request;
 
     @Autowired
+    CommentService commentService;
+
+    @Autowired
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> saveEntity(
-            @RequestBody UserEntity userEntity,
-            @CurrentUser(require = false) UserEntity operator) throws BlogException {
-        UserEntity opeartionResult = userService.addUser(userEntity);
+    @RequestMapping(value = "/comment", method = RequestMethod.POST)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<CommentEntity> saveEntity(
+            @RequestBody CommentEntity commentEntity,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(commentEntity.getCommentator().getUserId())) {
+            throw new BlogException.UnAuthorized();
+        }
+        commentEntity.setCommentator(userService.findUserById(commentEntity.getCommentator().getUserId()));
+        CommentEntity opeartionResult = null;
+        opeartionResult = commentService.addComment(commentEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
-        URI locationUrl = URI.create(String.format("http://%s:%d/user?id=%d",
-                request.getLocalName(), request.getLocalPort(), opeartionResult.getUserId()));
+        URI locationUrl = URI.create(String.format("http://%s:%d/comment?id=%d",
+                request.getLocalName(), request.getLocalPort(), opeartionResult.getCommentId()));
         httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<UserEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return new ResponseEntity<CommentEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> updateEntity(
-            @RequestBody UserEntity userEntity,
+    @RequestMapping(value = "/comment", method = RequestMethod.PUT)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<CommentEntity> updateEntity(
+            @RequestBody CommentEntity commentEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(userEntity.getUserId())) {
+                && !operator.getUserId().equals(commentEntity.getCommentator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        UserEntity tmp = userService.findUserById(userEntity.getUserId());
-        if (!StringUtils.isEmpty(userEntity.getNickname())) {
-            tmp.setNickname(userEntity.getNickname());
+        CommentEntity tmp = commentService.findCommentById(commentEntity.getCommentId());
+        if (!StringUtils.isEmpty(commentEntity.getContent())) {
+            tmp.setContent(commentEntity.getContent());
         }
-        if (!StringUtils.isEmpty(userEntity.getPhone())) {
-            tmp.setPhone(userEntity.getPhone());
-        }
-        if (!StringUtils.isEmpty(userEntity.getEmail())) {
-            tmp.setEmail(userEntity.getEmail());
-        }
-        if (!StringUtils.isEmpty(userEntity.getPassword())) {
-            tmp.setPassword(userEntity.getPassword());
-        }
-        if (!StringUtils.isEmpty(userEntity.getProvince())) {
-            tmp.setProvince(userEntity.getProvince());
-        }
-        if (!StringUtils.isEmpty(userEntity.getCity())) {
-            tmp.setCity(userEntity.getCity());
-        }
-        userService.updateUser(tmp);
+        Instant now = Instant.now();
+        tmp.setAccessTime(now.toEpochMilli());
+        tmp.setModifyTime(now.toEpochMilli());
+        commentService.updateComment(tmp);
         return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    @RequestMapping(value = "/comment", method = RequestMethod.DELETE)
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException.DeleteUserSuccess, BlogException {
-        UserEntity tmp = userService.findUserById(id);
+            @CurrentUser UserEntity operator) throws BlogException {
+        CommentEntity tmp = commentService.findCommentById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         try {
-            userService.removeUser(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteUserSuccess(), HttpStatus.OK);
+            commentService.removeComment(tmp);
+            return new ResponseEntity<>(new BlogException.DeleteCommentSuccess(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteUserFailed();
+            throw new BlogException.DeleteCommentFailed();
         }
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> queryEntityById(
+    @RequestMapping(value = "/comment", method = RequestMethod.GET)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<CommentEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
-        UserEntity tmp = userService.findUserById(id);
+        CommentEntity tmp = commentService.findCommentById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> saveEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/comments", method = RequestMethod.POST)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<List<CommentEntity>> saveEntities(
+            @RequestBody List<CommentEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<CommentEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = saveEntity(tmp, operator);
+            for (CommentEntity tmp : list) {
+                ResponseEntity<CommentEntity> res = saveEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -159,15 +157,15 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> updateEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/comments", method = RequestMethod.PUT)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<List<CommentEntity>> updateEntities(
+            @RequestBody List<CommentEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<CommentEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = updateEntity(tmp, operator);
+            for (CommentEntity tmp : list) {
+                ResponseEntity<CommentEntity> res = updateEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -187,18 +185,18 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> deleteEntitiesById(
+    @RequestMapping(value = "/comments", method = RequestMethod.DELETE)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<List<CommentEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateFailed = new ArrayList<>(ids.size());
+        List<CommentEntity> operateFailed = new ArrayList<>(ids.size());
         try {
             for (Integer id : ids) {
                 try {
                     ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (!HttpStatus.OK.equals(res.getStatusCode())) {
-                        operateFailed.add(userService.findUserById(id));
+                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
+                        operateFailed.add(commentService.findCommentById(id));
                     }
                 } catch (Exception e) {
                     continue;
@@ -219,23 +217,23 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> queryEntities(
+    @RequestMapping(value = "/comments", method = RequestMethod.GET)
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public ResponseEntity<List<CommentEntity>> queryEntities(
             Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String username = params.getOrDefault("username", "").toString();
-        String nickname = params.getOrDefault("nickname", "").toString();
-        String phone = params.getOrDefault("phone", "").toString();
-        String city = params.getOrDefault("city", "").toString();
-        String province = params.getOrDefault("province", "").toString();
-        String email = params.getOrDefault("email", "").toString();
+        String name = params.getOrDefault("name", "").toString();
+        String summary = params.getOrDefault("summary", "").toString();
+        String userId = params.getOrDefault("user_id", "").toString();
+        UserEntity userEntity = null;
+        if (StringUtils.isEmpty(userId)) {
+            userEntity = userService.findUserById(Integer.valueOf(userId));
+        }
         Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
         Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
         String[] descFilters = new String[]{};
         String[] ascFilters = new String[]{};
-        List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<UserEntity>>(userEntities, HttpStatus.OK);
+        List<CommentEntity> commentEntities = commentService.findCommentList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        return new ResponseEntity<List<CommentEntity>>(commentEntities, HttpStatus.OK);
     }
-
 }

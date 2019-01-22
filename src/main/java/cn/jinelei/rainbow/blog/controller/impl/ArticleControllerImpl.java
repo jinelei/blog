@@ -1,10 +1,12 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
-import cn.jinelei.rainbow.blog.controller.UserController;
+import cn.jinelei.rainbow.blog.controller.ArticleController;
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,105 +44,112 @@ import java.util.Map;
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_XML_VALUE
         })
-@JsonView(value = UserEntity.WithoutPasswordView.class)
-public class UserControllerImpl implements UserController {
+public class ArticleControllerImpl implements ArticleController {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserControllerImpl.class);
     @Autowired
     HttpServletRequest request;
 
     @Autowired
+    ArticleService articleService;
+
+    @Autowired
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> saveEntity(
-            @RequestBody UserEntity userEntity,
-            @CurrentUser(require = false) UserEntity operator) throws BlogException {
-        UserEntity opeartionResult = userService.addUser(userEntity);
+    @RequestMapping(value = "/article", method = RequestMethod.POST)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<ArticleEntity> saveEntity(
+            @RequestBody ArticleEntity articleEntity,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(articleEntity.getAuthor().getUserId())) {
+            throw new BlogException.UnAuthorized();
+        }
+        articleEntity.setAuthor(userService.findUserById(articleEntity.getAuthor().getUserId()));
+        ArticleEntity opeartionResult = null;
+        opeartionResult = articleService.addArticle(articleEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
-        URI locationUrl = URI.create(String.format("http://%s:%d/user?id=%d",
-                request.getLocalName(), request.getLocalPort(), opeartionResult.getUserId()));
+        URI locationUrl = URI.create(String.format("http://%s:%d/article?id=%d",
+                request.getLocalName(), request.getLocalPort(), opeartionResult.getArticleId()));
         httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<UserEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return new ResponseEntity<ArticleEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> updateEntity(
-            @RequestBody UserEntity userEntity,
+    @RequestMapping(value = "/article", method = RequestMethod.PUT)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<ArticleEntity> updateEntity(
+            @RequestBody ArticleEntity articleEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(userEntity.getUserId())) {
+                && !operator.getUserId().equals(articleEntity.getAuthor().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        UserEntity tmp = userService.findUserById(userEntity.getUserId());
-        if (!StringUtils.isEmpty(userEntity.getNickname())) {
-            tmp.setNickname(userEntity.getNickname());
+        ArticleEntity tmp = articleService.findArticleById(articleEntity.getArticleId());
+        if (!StringUtils.isEmpty(articleEntity.getTitle())) {
+            tmp.setTitle(articleEntity.getTitle());
         }
-        if (!StringUtils.isEmpty(userEntity.getPhone())) {
-            tmp.setPhone(userEntity.getPhone());
+        if (!StringUtils.isEmpty(articleEntity.getContent())) {
+            tmp.setContent(articleEntity.getContent());
         }
-        if (!StringUtils.isEmpty(userEntity.getEmail())) {
-            tmp.setEmail(userEntity.getEmail());
+        if (articleEntity.getTags() != null) {
+            tmp.setTags(articleEntity.getTags());
         }
-        if (!StringUtils.isEmpty(userEntity.getPassword())) {
-            tmp.setPassword(userEntity.getPassword());
+        if (articleEntity.getComments() != null) {
+            tmp.setComments(articleEntity.getComments());
         }
-        if (!StringUtils.isEmpty(userEntity.getProvince())) {
-            tmp.setProvince(userEntity.getProvince());
+        if (articleEntity.getCategory() != null) {
+            tmp.setCategory(articleEntity.getCategory());
         }
-        if (!StringUtils.isEmpty(userEntity.getCity())) {
-            tmp.setCity(userEntity.getCity());
-        }
-        userService.updateUser(tmp);
+        Instant now = Instant.now();
+        tmp.setAccessTime(now.toEpochMilli());
+        tmp.setModifyTime(now.toEpochMilli());
+        articleService.updateArticle(tmp);
         return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    @RequestMapping(value = "/article", method = RequestMethod.DELETE)
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException.DeleteUserSuccess, BlogException {
-        UserEntity tmp = userService.findUserById(id);
+            @CurrentUser UserEntity operator) throws BlogException {
+        ArticleEntity tmp = articleService.findArticleById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         try {
-            userService.removeUser(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteUserSuccess(), HttpStatus.OK);
+            articleService.removeArticle(tmp);
+            return new ResponseEntity<>(new BlogException.DeleteArticleSuccess(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteUserFailed();
+            throw new BlogException.DeleteArticleFailed();
         }
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> queryEntityById(
+    @RequestMapping(value = "/article", method = RequestMethod.GET)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<ArticleEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
-        UserEntity tmp = userService.findUserById(id);
+        ArticleEntity tmp = articleService.findArticleById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
+                && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.POST)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> saveEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/articles", method = RequestMethod.POST)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<List<ArticleEntity>> saveEntities(
+            @RequestBody List<ArticleEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<ArticleEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = saveEntity(tmp, operator);
+            for (ArticleEntity tmp : list) {
+                ResponseEntity<ArticleEntity> res = saveEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -159,15 +169,15 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.PUT)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> updateEntities(
-            @RequestBody List<UserEntity> list,
+    @RequestMapping(value = "/articles", method = RequestMethod.PUT)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<List<ArticleEntity>> updateEntities(
+            @RequestBody List<ArticleEntity> list,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
+        List<ArticleEntity> operateSuccess = new ArrayList<>(list.size());
         try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = updateEntity(tmp, operator);
+            for (ArticleEntity tmp : list) {
+                ResponseEntity<ArticleEntity> res = updateEntity(tmp, operator);
                 if (HttpStatus.OK.equals(res.getStatusCode())) {
                     operateSuccess.add(tmp);
                 }
@@ -187,18 +197,18 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.DELETE)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> deleteEntitiesById(
+    @RequestMapping(value = "/articles", method = RequestMethod.DELETE)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<List<ArticleEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateFailed = new ArrayList<>(ids.size());
+        List<ArticleEntity> operateFailed = new ArrayList<>(ids.size());
         try {
             for (Integer id : ids) {
                 try {
                     ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (!HttpStatus.OK.equals(res.getStatusCode())) {
-                        operateFailed.add(userService.findUserById(id));
+                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
+                        operateFailed.add(articleService.findArticleById(id));
                     }
                 } catch (Exception e) {
                     continue;
@@ -219,23 +229,23 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> queryEntities(
+    @RequestMapping(value = "/articles", method = RequestMethod.GET)
+    @JsonView(value = ArticleEntity.BaseArticleView.class)
+    public ResponseEntity<List<ArticleEntity>> queryEntities(
             Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String username = params.getOrDefault("username", "").toString();
-        String nickname = params.getOrDefault("nickname", "").toString();
-        String phone = params.getOrDefault("phone", "").toString();
-        String city = params.getOrDefault("city", "").toString();
-        String province = params.getOrDefault("province", "").toString();
-        String email = params.getOrDefault("email", "").toString();
+        String name = params.getOrDefault("name", "").toString();
+        String summary = params.getOrDefault("summary", "").toString();
+        String userId = params.getOrDefault("user_id", "").toString();
+        UserEntity userEntity = null;
+        if (StringUtils.isEmpty(userId)) {
+            userEntity = userService.findUserById(Integer.valueOf(userId));
+        }
         Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
         Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
         String[] descFilters = new String[]{};
         String[] ascFilters = new String[]{};
-        List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<UserEntity>>(userEntities, HttpStatus.OK);
+        List<ArticleEntity> articleEntities = articleService.findArticleList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }
-
 }

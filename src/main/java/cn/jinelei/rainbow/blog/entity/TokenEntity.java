@@ -1,5 +1,7 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import javax.persistence.*;
@@ -11,6 +13,7 @@ import javax.xml.bind.annotation.XmlElement;
 @Entity
 @Table(name = "token")
 @JacksonXmlRootElement(localName = "token")
+@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler", "fieldHandler"})
 public class TokenEntity {
     @Id
     @XmlElement
@@ -19,6 +22,7 @@ public class TokenEntity {
     @OneToOne
     @XmlElement
     @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JsonView(value = UserEntity.WithoutPasswordView.class)
     private UserEntity userEntity;
     @Column(unique = true, length = 20)
     @XmlElement

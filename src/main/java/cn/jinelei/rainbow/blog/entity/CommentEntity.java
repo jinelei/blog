@@ -1,5 +1,7 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import javax.persistence.*;
@@ -12,31 +14,42 @@ import java.util.Objects;
 @Entity
 @Table(name = "comment")
 @JacksonXmlRootElement(localName = "comment")
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class CommentEntity {
+    public interface BaseCommentView extends UserEntity.WithoutPasswordView {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @XmlElement
     @Column(name = "comment_id", unique = true, nullable = false)
+    @JsonView(value = BaseCommentView.class)
     private Integer commentId;
     @XmlElement
     @Column(name = "create_time", nullable = false)
+    @JsonView(value = BaseCommentView.class)
     private Long createTime;
     @XmlElement
     @Column(name = "modify_time", nullable = true)
+    @JsonView(value = BaseCommentView.class)
     private Long modifyTime;
     @XmlElement
     @Column(name = "access_time", nullable = true)
+    @JsonView(value = BaseCommentView.class)
     private Long accessTime;
     @XmlElement
     @Column(name = "content", nullable = false, length = 255)
+    @JsonView(value = BaseCommentView.class)
     private String content;
     @XmlElement
     @ManyToOne(targetEntity = UserEntity.class)
     @JoinColumn(name = "commentator")
+    @JsonView(value = BaseCommentView.class)
     private UserEntity commentator;
     @XmlElement
     @ManyToOne(targetEntity = ArticleEntity.class)
     @JoinColumn(name = "article")
+    @JsonView(value = BaseCommentView.class)
     private ArticleEntity article;
 
     public boolean equalsWithoutId(Object o) {

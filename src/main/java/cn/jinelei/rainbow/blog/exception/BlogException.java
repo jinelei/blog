@@ -136,4 +136,67 @@ public class BlogException extends Exception {
         BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_USER_FAILED;
     }
 
+    public static class TagNotFound extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TAG_NOT_FOUND;
+    }
+
+    public static class DeleteTagSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_TAG_SUCCESS;
+    }
+
+    public static class DeleteTagFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_TAG_FAILED;
+    }
+
+    public static class TagAlreadyExist extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TAG_ALREADY_EXIST;
+    }
+
+    public static class CategoryNotFound extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.CATEGORY_NOT_FOUND;
+    }
+
+    public static class DeleteCategorySuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_CATEGORY_SUCCESS;
+    }
+
+    public static class DeleteCategoryFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_CATEGORY_FAILED;
+    }
+
+    public static class CategoryAlreadyExist extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.CATEGORY_ALREADY_EXIST;
+    }
+
+    public static class CommentNotFound extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.COMMENT_NOT_FOUND;
+    }
+
+    public static class DeleteCommentSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_COMMENT_SUCCESS;
+    }
+
+    public static class DeleteCommentFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_COMMENT_FAILED;
+    }
+
+    public static class CommentAlreadyExist extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.COMMENT_ALREADY_EXIST;
+    }
+
+    public static class ArticleNotFound extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.ARTICLE_NOT_FOUND;
+    }
+
+    public static class DeleteArticleSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_ARTICLE_SUCCESS;
+    }
+
+    public static class DeleteArticleFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_ARTICLE_FAILED;
+    }
+
+    public static class ArticleAlreadyExist extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.ARTICLE_ALREADY_EXIST;
+    }
 }

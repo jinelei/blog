@@ -1,5 +1,8 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import javax.persistence.*;
@@ -13,33 +16,46 @@ import java.util.Objects;
 @Entity
 @Table(name = "category")
 @JacksonXmlRootElement(localName = "category")
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class CategoryEntity {
+    public interface BaseCategoryView extends UserEntity.WithoutPasswordView {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_id", unique = true, nullable = false)
     @XmlElement
+    @JsonView(BaseCategoryView.class)
     private Integer categoryId;
     @XmlElement
     @Column(name = "create_time", nullable = false)
+    @JsonView(BaseCategoryView.class)
     private Long createTime;
     @XmlElement
     @Column(name = "modify_time", nullable = true)
+    @JsonView(BaseCategoryView.class)
     private Long modifyTime;
     @XmlElement
     @Column(name = "access_time", nullable = true)
+    @JsonView(BaseCategoryView.class)
     private Long accessTime;
     @XmlElement
     @Column(name = "name", unique = true, nullable = false, length = 20)
+    @JsonView(BaseCategoryView.class)
     private String name;
     @XmlElement
     @Column(name = "summarty", nullable = true, length = 255)
+    @JsonView(BaseCategoryView.class)
     private String summary;
     @XmlElement
+    @JsonIgnore
     @OneToMany(targetEntity = ArticleEntity.class, mappedBy = "category")
+    @JsonView(BaseCategoryView.class)
     private List<ArticleEntity> articles;
     @XmlElement
     @ManyToOne(targetEntity = UserEntity.class)
     @JoinColumn(name = "categoryCreator")
+    @JsonView(BaseCategoryView.class)
     private UserEntity categoryCreator;
 
     public boolean equalsWithoutId(Object o) {
