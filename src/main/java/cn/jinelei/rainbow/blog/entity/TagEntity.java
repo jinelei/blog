@@ -42,20 +42,6 @@ public class TagEntity {
     @JoinColumn(name = "tagCreator")
     private UserEntity tagCreator;
 
-    @Override
-    public String toString() {
-        return "TagEntity{" +
-                "tagId=" + tagId +
-                ", createTime=" + createTime +
-                ", modifyTime=" + modifyTime +
-                ", accessTime=" + accessTime +
-                ", name='" + name + '\'' +
-                ", summary='" + summary + '\'' +
-                ", articles=" + articles +
-                ", tagCreator=" + tagCreator +
-                '}';
-    }
-
     public boolean equalsWithoutId(Object o) {
         if (this == o) {
             return true;

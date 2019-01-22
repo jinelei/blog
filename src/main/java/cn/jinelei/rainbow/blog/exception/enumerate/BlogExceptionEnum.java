@@ -31,6 +31,8 @@ public enum BlogExceptionEnum {
     USER_LOGIN_FAILED(801024, "user login failed"),
     USER_LOGOUT_SUCCESS(802048, "user logout success"),
     USER_LOGOUT_FAILED(804096, "user logout failed"),
+    DELETE_USER_SUCCESS(808192, "delete user success"),
+    DELETE_USER_FAILED(816384, "delete user failed"),
     /**
      * 保留错误码
      */

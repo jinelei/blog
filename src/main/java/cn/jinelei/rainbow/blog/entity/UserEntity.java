@@ -5,6 +5,8 @@ import cn.jinelei.rainbow.blog.entity.enumerate.UserPrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.convert.GroupPrivilegeConvert;
 import cn.jinelei.rainbow.blog.entity.enumerate.convert.UserPrivilegeConvert;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
@@ -53,19 +55,23 @@ public class UserEntity {
     private GroupPrivilege groupPrivilege = GroupPrivilege.TOURIST_GROUP;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = ArticleEntity.class, cascade = CascadeType.REFRESH, mappedBy = "author")
+    @OneToMany(targetEntity = ArticleEntity.class, cascade = CascadeType.REFRESH, mappedBy = "author", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     private List<ArticleEntity> articles;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = CategoryEntity.class, cascade = CascadeType.REFRESH, mappedBy = "categoryCreator")
+    @OneToMany(targetEntity = CategoryEntity.class, cascade = CascadeType.REFRESH, mappedBy = "categoryCreator", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     private List<CategoryEntity> categories;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.REFRESH, mappedBy = "tagCreator")
+    @OneToMany(targetEntity = TagEntity.class, cascade = CascadeType.REFRESH, mappedBy = "tagCreator", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     private List<TagEntity> tags;
     @Column
     @XmlElement
-    @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "commentator")
+    @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "commentator", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
     private List<CommentEntity> comments;
 
     public boolean equalsWithId(Object o) {
@@ -92,26 +98,6 @@ public class UserEntity {
     }
 
     public UserEntity() {
-    }
-
-    @Override
-    public String toString() {
-        return "UserEntity{" +
-                "userId=" + userId +
-                ", username='" + username + '\'' +
-                ", nickname='" + nickname + '\'' +
-                ", password='" + password + '\'' +
-                ", phone='" + phone + '\'' +
-                ", email='" + email + '\'' +
-                ", province='" + province + '\'' +
-                ", city='" + city + '\'' +
-                ", userPrivilege=" + userPrivilege +
-                ", groupPrivilege=" + groupPrivilege +
-                ", articles=" + articles +
-                ", categories=" + categories +
-                ", tags=" + tags +
-                ", comments=" + comments +
-                '}';
     }
 
     public UserEntity(String username, String nickname, String password, String phone, String email, String province,

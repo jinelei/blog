@@ -72,22 +72,6 @@ public class ArticleEntity {
                 Objects.equals(comments, that.comments);
     }
 
-    @Override
-    public String toString() {
-        return "ArticleEntity{" +
-                "articleId=" + articleId +
-                ", createTime=" + createTime +
-                ", modifyTime=" + modifyTime +
-                ", accessTime=" + accessTime +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", author=" + author +
-                ", category=" + category +
-                ", tags=" + tags +
-                ", comments=" + comments +
-                '}';
-    }
-
     public ArticleEntity(Long createTime, Long modifyTime, Long accessTime, String title, String content, UserEntity author, CategoryEntity category, List<TagEntity> tags, List<CommentEntity> comments) {
         this.createTime = createTime;
         this.modifyTime = modifyTime;

@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class GlobalExceptionhandler {
 
+    @ExceptionHandler(value = {BlogException.DeleteUserSuccess.class})
+    @ResponseBody
+    public ResponseEntity<BlogException> handleSuccessBlogException(BlogException e) {
+        return new ResponseEntity<BlogException>(e, HttpStatus.OK);
+    }
+
     @ExceptionHandler(value = {BlogException.class})
     @ResponseBody
     @JsonAnyGetter

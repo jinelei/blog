@@ -128,4 +128,12 @@ public class BlogException extends Exception {
         BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TOKEN_NOT_EFFECTIVE;
     }
 
+    public static class DeleteUserSuccess extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_USER_SUCCESS;
+    }
+
+    public static class DeleteUserFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_USER_FAILED;
+    }
+
 }

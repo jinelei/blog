@@ -97,14 +97,18 @@ public class UserControllerImpl implements UserController {
     @RequestMapping(value = "/user", method = RequestMethod.DELETE)
     public ResponseEntity<UserEntity> deleteEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException {
+            @CurrentUser UserEntity operator) throws BlogException.DeleteUserSuccess, BlogException {
         UserEntity tmp = userService.findUserById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        userService.removeUser(tmp);
-        return new ResponseEntity<UserEntity>(tmp, HttpStatus.OK);
+        try {
+            userService.removeUser(tmp);
+            throw new BlogException.DeleteUserSuccess();
+        } catch (Exception e) {
+            return new ResponseEntity<>(tmp, HttpStatus.OK);
+        }
     }
 
     @Override
@@ -117,7 +121,7 @@ public class UserControllerImpl implements UserController {
                 && !operator.getUserId().equals(tmp.getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
+        return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -177,26 +181,30 @@ public class UserControllerImpl implements UserController {
     @Override
     @RequestMapping(value = "/users", method = RequestMethod.DELETE)
     public ResponseEntity<List<UserEntity>> deleteEntitiesById(
-            @RequestParam(name = "id") List<Integer> ids,
+            @RequestParam(name = "ids") List<Integer> ids,
             @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(ids.size());
+        List<UserEntity> operateFailed = new ArrayList<>(ids.size());
         try {
             for (Integer id : ids) {
-                ResponseEntity<UserEntity> res = deleteEntityById(id, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(res.getBody());
+                try {
+                    ResponseEntity<UserEntity> res = deleteEntityById(id, operator);
+                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
+                        operateFailed.add(res.getBody());
+                    }
+                } catch (Exception e) {
+                    continue;
                 }
             }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
+            return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
         } catch (Exception e) {
             LOGGER.error(e.toString());
         } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < ids.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
+            if (operateFailed.size() == 0) {
+                return new ResponseEntity<>(operateFailed, HttpStatus.BAD_REQUEST);
+            } else if (operateFailed.size() > 0 && operateFailed.size() < ids.size()) {
+                return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
             } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
+                return new ResponseEntity<>(operateFailed, HttpStatus.OK);
             }
         }
     }

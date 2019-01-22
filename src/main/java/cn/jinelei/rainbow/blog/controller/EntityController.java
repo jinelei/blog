@@ -36,10 +36,10 @@ public interface EntityController<T> {
      *
      * @param id
      * @param operator 操作者实例
-     * @return
-     * @throws BlogException
+     * @return 失败返回失败的实例
+     * @throws BlogException 成功抛出成功异常
      */
-    ResponseEntity<T> deleteEntityById(Integer id, UserEntity operator) throws BlogException;
+    ResponseEntity<UserEntity> deleteEntityById(Integer id, UserEntity operator) throws BlogException;
 
     /**
      * 查询实例
