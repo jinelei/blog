@@ -19,7 +19,7 @@ public interface CommentService {
     CommentEntity findCommentById(Integer id) throws BlogException;
 
     List<CommentEntity> findCommentList(
-            String name, String summary, UserEntity commentCreator,
+            String content, UserEntity commentCreator,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException;
 }
 
