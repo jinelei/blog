@@ -1,6 +1,8 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
 import cn.jinelei.rainbow.blog.entity.ArticleEntity;
+import cn.jinelei.rainbow.blog.entity.CategoryEntity;
+import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.repository.ArticleRepository;
@@ -100,20 +102,29 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public List<ArticleEntity> findArticleList(
-            String name, String summary, UserEntity articleCreator,
+            String title, UserEntity author, CategoryEntity category, List<TagEntity> tags,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException {
         // 设置查询条件
         Specification<ArticleEntity> specification = new Specification<ArticleEntity>() {
             @Override
             public Predicate toPredicate(Root<ArticleEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
-                if (!StringUtils.isEmpty(name)) {
-                    predicates.add(criteriaBuilder.like(root.get("name").as(String.class),
-                            String.format("%%%s%%", name)));
+                if (!StringUtils.isEmpty(title)) {
+                    predicates.add(criteriaBuilder.like(root.get("title").as(String.class),
+                            String.format("%%%s%%", title)));
                 }
-                if (!StringUtils.isEmpty(summary)) {
-                    predicates.add(criteriaBuilder.like(root.get("summary").as(String.class),
-                            String.format("%%%s%%", summary)));
+                if (author != null) {
+                    predicates.add(criteriaBuilder.equal(root.get("author").as(UserEntity.class),
+                            String.format("%%%s%%", author)));
+                }
+                if (category != null) {
+                    predicates.add(criteriaBuilder.equal(root.get("category").as(CategoryEntity.class),
+                            String.format("%%%s%%", category)));
+                }
+                if (tags != null && tags.size() > 0) {
+                    for (TagEntity tagEntity : tags) {
+                        predicates.add(criteriaBuilder.isMember(tagEntity, root.get("tags")));
+                    }
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(predicateList));
@@ -129,7 +140,7 @@ public class ArticleServiceImpl implements ArticleService {
             sort = new Sort(Sort.Direction.DESC, descFilters);
         }
         // 如果分页有效
-        if (page != null && size != null) {
+        if (page != null && size != null && page > -1 && size > -1) {
             Page<ArticleEntity> res = sort != null ?
                     articleRepository.findAll(specification, PageRequest.of(page, size, sort)) :
                     articleRepository.findAll(specification, PageRequest.of(page, size));

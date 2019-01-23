@@ -129,7 +129,7 @@ public class TagServiceImpl implements TagService {
             sort = new Sort(Sort.Direction.DESC, descFilters);
         }
         // 如果分页有效
-        if (page != null && size != null) {
+        if (page != null && size != null && page > -1 && size > -1) {
             Page<TagEntity> res = sort != null ?
                     tagRepository.findAll(specification, PageRequest.of(page, size, sort)) :
                     tagRepository.findAll(specification, PageRequest.of(page, size));

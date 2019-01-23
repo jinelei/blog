@@ -129,7 +129,7 @@ public class CategoryServiceImpl implements CategoryService {
             sort = new Sort(Sort.Direction.DESC, descFilters);
         }
         // 如果分页有效
-        if (page != null && size != null) {
+        if (page != null && size != null && page > -1 && size > -1) {
             Page<CategoryEntity> res = sort != null ?
                     categoryRepository.findAll(specification, PageRequest.of(page, size, sort)) :
                     categoryRepository.findAll(specification, PageRequest.of(page, size));

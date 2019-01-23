@@ -100,20 +100,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentEntity> findCommentList(
-            String name, String summary, UserEntity commentCreator,
+            String content, UserEntity commentCreator,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException {
         // 设置查询条件
         Specification<CommentEntity> specification = new Specification<CommentEntity>() {
             @Override
             public Predicate toPredicate(Root<CommentEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
-                if (!StringUtils.isEmpty(name)) {
-                    predicates.add(criteriaBuilder.like(root.get("name").as(String.class),
-                            String.format("%%%s%%", name)));
-                }
-                if (!StringUtils.isEmpty(summary)) {
-                    predicates.add(criteriaBuilder.like(root.get("summary").as(String.class),
-                            String.format("%%%s%%", summary)));
+                if (!StringUtils.isEmpty(content)) {
+                    predicates.add(criteriaBuilder.like(root.get("content").as(String.class),
+                            String.format("%%%s%%", content)));
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(predicateList));
@@ -129,7 +125,7 @@ public class CommentServiceImpl implements CommentService {
             sort = new Sort(Sort.Direction.DESC, descFilters);
         }
         // 如果分页有效
-        if (page != null && size != null) {
+        if (page != null && size != null && page > -1 && size > -1) {
             Page<CommentEntity> res = sort != null ?
                     commentRepository.findAll(specification, PageRequest.of(page, size, sort)) :
                     commentRepository.findAll(specification, PageRequest.of(page, size));

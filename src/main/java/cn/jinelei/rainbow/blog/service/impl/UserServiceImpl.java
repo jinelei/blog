@@ -125,7 +125,7 @@ public class UserServiceImpl implements UserService {
             sort = new Sort(Sort.Direction.DESC, descFilters);
         }
         // 如果分页有效
-        if (page != null && size != null) {
+        if (page != null && size != null && page > -1 && size > -1) {
             Page<UserEntity> res = sort != null ?
                     userRepository.findAll(specification, PageRequest.of(page, size, sort)) :
                     userRepository.findAll(specification, PageRequest.of(page, size));
