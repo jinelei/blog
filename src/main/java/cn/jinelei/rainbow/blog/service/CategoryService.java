@@ -1,5 +1,6 @@
 package cn.jinelei.rainbow.blog.service;
 
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
@@ -19,6 +20,6 @@ public interface CategoryService {
     CategoryEntity findCategoryById(Integer id) throws BlogException;
 
     List<CategoryEntity> findCategoryList(
-            String name, String summary, UserEntity categoryCreator,
+            String name, String summary, UserEntity categoryCreator, ArticleEntity articleEntity,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException;
 }

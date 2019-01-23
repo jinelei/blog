@@ -119,4 +119,17 @@ public interface EntityController<T> {
         LOGGER.debug("default query entities");
         return new ResponseEntity<>((List<T>) null, HttpStatus.OK);
     }
+
+    /**
+     * 查询实例集合容量
+     *
+     * @param params
+     * @param operator 操作者实例
+     * @return
+     * @throws BlogException
+     */
+    default ResponseEntity queryEntitiesSize(Map<String, Object> params, UserEntity operator) throws BlogException {
+        LOGGER.debug("default query entities size");
+        return new ResponseEntity<>(null, HttpStatus.OK);
+    }
 }

@@ -1,5 +1,6 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
+import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.repository.UserRepository;
@@ -88,27 +89,27 @@ public class UserServiceImpl implements UserService {
             public Predicate toPredicate(Root<UserEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
                 if (!StringUtils.isEmpty(username)) {
-                    predicates.add(criteriaBuilder.like(root.get("username").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.USERNAME).as(String.class),
                             String.format("%%%s%%", username)));
                 }
                 if (!StringUtils.isEmpty(nickname)) {
-                    predicates.add(criteriaBuilder.like(root.get("nickname").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.NICKNAME).as(String.class),
                             String.format("%%%s%%", nickname)));
                 }
                 if (!StringUtils.isEmpty(province)) {
-                    predicates.add(criteriaBuilder.like(root.get("province").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.PROVINCE).as(String.class),
                             String.format("%%%s%%", province)));
                 }
                 if (!StringUtils.isEmpty(city)) {
-                    predicates.add(criteriaBuilder.like(root.get("city").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.CITY).as(String.class),
                             String.format("%%%s%%", city)));
                 }
                 if (!StringUtils.isEmpty(phone)) {
-                    predicates.add(criteriaBuilder.like(root.get("phone").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.PHONE).as(String.class),
                             String.format("%%%s", phone.replace("^\\+\\d\\d", ""))));
                 }
                 if (!StringUtils.isEmpty(email)) {
-                    predicates.add(criteriaBuilder.like(root.get("email").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.EMAIL).as(String.class),
                             email));
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];

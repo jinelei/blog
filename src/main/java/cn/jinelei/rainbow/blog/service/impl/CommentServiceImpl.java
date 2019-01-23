@@ -1,5 +1,8 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
+import cn.jinelei.rainbow.blog.constant.Constants;
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
+import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
@@ -39,25 +42,6 @@ public class CommentServiceImpl implements CommentService {
             commentEntity.setCreateTime(Instant.now().toEpochMilli());
         }
         try {
-            List<CommentEntity> list = commentRepository.findAll(new Specification<CommentEntity>() {
-                @Override
-                public Predicate toPredicate(Root<CommentEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                    List<Predicate> predicates = new ArrayList<>(16);
-                    if (!StringUtils.isEmpty(commentEntity.getContent())) {
-                        predicates.add(criteriaBuilder.equal(root.get("content").as(String.class),
-                                commentEntity.getContent()));
-                    }
-                    if (commentEntity.getCommentator() != null) {
-                        predicates.add(criteriaBuilder.equal(root.get("commentator").as(UserEntity.class),
-                                commentEntity.getCommentator()));
-                    }
-                    Predicate[] predicateList = new Predicate[predicates.size()];
-                    return criteriaBuilder.and(predicates.toArray(predicateList));
-                }
-            });
-            if (list.size() > 0) {
-                throw new BlogException.CommentAlreadyExist();
-            }
             CommentEntity saveResult = commentRepository.save(commentEntity);
             if (!saveResult.equalsWithoutId(commentEntity)) {
                 throw new BlogException.InsertDataError();
@@ -100,7 +84,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentEntity> findCommentList(
-            String content, UserEntity commentCreator,
+            String content, UserEntity commentator, ArticleEntity articleEntity,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException {
         // 设置查询条件
         Specification<CommentEntity> specification = new Specification<CommentEntity>() {
@@ -108,8 +92,16 @@ public class CommentServiceImpl implements CommentService {
             public Predicate toPredicate(Root<CommentEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
                 if (!StringUtils.isEmpty(content)) {
-                    predicates.add(criteriaBuilder.like(root.get("content").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.CONTENT).as(String.class),
                             String.format("%%%s%%", content)));
+                    if (commentator != null) {
+                        predicates.add(criteriaBuilder.equal(root.get(Constants.COMMENTATOR).as(UserEntity.class),
+                                commentator));
+                    }
+                    if (articleEntity != null) {
+                        predicates.add(criteriaBuilder.equal(root.get(Constants.ARTICLE).as(ArticleEntity.class),
+                                articleEntity));
+                    }
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(predicateList));

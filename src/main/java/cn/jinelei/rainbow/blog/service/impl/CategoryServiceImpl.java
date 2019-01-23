@@ -1,5 +1,7 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
+import cn.jinelei.rainbow.blog.constant.Constants;
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
@@ -100,7 +102,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryEntity> findCategoryList(
-            String name, String summary, UserEntity categoryCreator,
+            String name, String summary, UserEntity categoryCreator, ArticleEntity articleEntity,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException {
         // 设置查询条件
         Specification<CategoryEntity> specification = new Specification<CategoryEntity>() {
@@ -108,12 +110,18 @@ public class CategoryServiceImpl implements CategoryService {
             public Predicate toPredicate(Root<CategoryEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
                 if (!StringUtils.isEmpty(name)) {
-                    predicates.add(criteriaBuilder.like(root.get("name").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.NAME).as(String.class),
                             String.format("%%%s%%", name)));
                 }
                 if (!StringUtils.isEmpty(summary)) {
-                    predicates.add(criteriaBuilder.like(root.get("summary").as(String.class),
+                    predicates.add(criteriaBuilder.like(root.get(Constants.SUMMARY).as(String.class),
                             String.format("%%%s%%", summary)));
+                }
+                if (categoryCreator != null && categoryCreator.getUserId() != null) {
+                    predicates.add(criteriaBuilder.equal(root.get(Constants.CATEGORY_CREATOR).as(UserEntity.class), categoryCreator));
+                }
+                if (articleEntity != null && articleEntity.getArticleId() != null) {
+                    predicates.add(criteriaBuilder.equal(root.get(Constants.ARTICLE).as(ArticleEntity.class), articleEntity));
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(predicateList));

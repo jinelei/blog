@@ -1,11 +1,15 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
+import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.controller.CategoryController;
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CategoryEntity;
+import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.CategoryService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -51,6 +55,9 @@ public class CategoryControllerImpl implements CategoryController {
 
     @Autowired
     CategoryService categoryService;
+
+    @Autowired
+    ArticleService articleService;
 
     @Autowired
     UserService userService;
@@ -136,7 +143,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categorys", method = RequestMethod.POST)
+    @RequestMapping(value = "/categories", method = RequestMethod.POST)
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> saveEntities(
             @RequestBody List<CategoryEntity> list,
@@ -164,7 +171,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categorys", method = RequestMethod.PUT)
+    @RequestMapping(value = "/categories", method = RequestMethod.PUT)
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> updateEntities(
             @RequestBody List<CategoryEntity> list,
@@ -192,7 +199,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categorys", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/categories", method = RequestMethod.DELETE)
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -224,23 +231,47 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categorys", method = RequestMethod.GET)
+    @RequestMapping(value = "/categories", method = RequestMethod.GET)
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> queryEntities(
-            Map<String, Object> params,
+            @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String name = params.getOrDefault("name", "").toString();
-        String summary = params.getOrDefault("summary", "").toString();
-        String userId = params.getOrDefault("user_id", "").toString();
+        String name = params.getOrDefault(Constants.NAME, Constants.DEFAULT_STRING).toString();
+        String summary = params.getOrDefault(Constants.SUMMARY, Constants.DEFAULT_STRING).toString();
+        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
+        String articleId = params.getOrDefault(Constants.ARTICLE_ID, Constants.DEFAULT_STRING).toString();
         UserEntity userEntity = null;
-        if (StringUtils.isEmpty(userId)) {
+        ArticleEntity articleEntity = null;
+        if (!StringUtils.isEmpty(userId)) {
             userEntity = userService.findUserById(Integer.valueOf(userId));
         }
-        Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
-        Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
-        String[] descFilters = new String[]{};
-        String[] ascFilters = new String[]{};
-        List<CategoryEntity> categoryEntities = categoryService.findCategoryList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        if (!StringUtils.isEmpty(articleId)) {
+            articleEntity = articleService.findArticleById(Integer.valueOf(articleId));
+        }
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<CategoryEntity> categoryEntities = categoryService.findCategoryList(name, summary, userEntity, articleEntity, page, size, descFilters, ascFilters);
         return new ResponseEntity<List<CategoryEntity>>(categoryEntities, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(value = "/categories", method = RequestMethod.HEAD)
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        ResponseEntity<List<CategoryEntity>> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.getBody().size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
 }

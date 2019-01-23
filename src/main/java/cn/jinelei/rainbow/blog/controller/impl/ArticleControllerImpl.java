@@ -1,12 +1,17 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
+import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.controller.ArticleController;
 import cn.jinelei.rainbow.blog.entity.ArticleEntity;
+import cn.jinelei.rainbow.blog.entity.CategoryEntity;
+import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.ArticleService;
+import cn.jinelei.rainbow.blog.service.CategoryService;
+import cn.jinelei.rainbow.blog.service.TagService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
@@ -50,10 +55,16 @@ public class ArticleControllerImpl implements ArticleController {
     HttpServletRequest request;
 
     @Autowired
+    TagService tagService;
+
+    @Autowired
     ArticleService articleService;
 
     @Autowired
     UserService userService;
+
+    @Autowired
+    CategoryService categoryService;
 
     @Override
     @RequestMapping(value = "/article", method = RequestMethod.POST)
@@ -141,7 +152,7 @@ public class ArticleControllerImpl implements ArticleController {
                 && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override
@@ -236,20 +247,60 @@ public class ArticleControllerImpl implements ArticleController {
     @RequestMapping(value = "/articles", method = RequestMethod.GET)
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> queryEntities(
-            Map<String, Object> params,
+            @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String name = params.getOrDefault("name", "").toString();
-        String summary = params.getOrDefault("summary", "").toString();
-        String userId = params.getOrDefault("user_id", "").toString();
-        UserEntity userEntity = null;
-        if (StringUtils.isEmpty(userId)) {
-            userEntity = userService.findUserById(Integer.valueOf(userId));
+        String title = params.getOrDefault(Constants.TITLE, Constants.DEFAULT_STRING).toString();
+        UserEntity author = null;
+        if (params.containsKey(Constants.AUTHOR)) {
+            author = userService.findUserById(
+                    Integer.valueOf(params.getOrDefault(Constants.AUTHOR, Constants.DEFAULT_STRING).toString()));
         }
-        Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
-        Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
-        String[] descFilters = new String[]{};
-        String[] ascFilters = new String[]{};
-        List<ArticleEntity> articleEntities = articleService.findArticleList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        CategoryEntity category = null;
+        if (params.containsKey(Constants.CATEGORY)) {
+            category = categoryService.findCategoryById(
+                    Integer.valueOf(params.getOrDefault(Constants.CATEGORY, Constants.DEFAULT_STRING).toString()));
+        }
+        List<TagEntity> tags = null;
+        if (params.getOrDefault(Constants.TAGS, Constants.DEFAULT_STRING) != Constants.DEFAULT_STRING) {
+            for (String tmp : params.getOrDefault(Constants.TAGS, Constants.DEFAULT_STRING).toString().split(Constants.COMMA_SPLIT)) {
+                if (!StringUtils.isEmpty(tmp)) {
+                    try {
+                        TagEntity tagEntity = tagService.findTagById(Integer.valueOf(tmp));
+                        if (tagEntity != null) {
+                            if (tags == null) {
+                                tags = new ArrayList<>();
+                            }
+                            tags.add(tagEntity);
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+            }
+        }
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<ArticleEntity> articleEntities = articleService.findArticleList(title, author, category, tags, page, size, descFilters, ascFilters);
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(value = "/articles", method = RequestMethod.HEAD)
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        ResponseEntity<List<ArticleEntity>> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.getBody().size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
 }

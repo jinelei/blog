@@ -1,8 +1,11 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
+import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.controller.CommentController;
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CommentEntity;
+import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
@@ -233,20 +236,43 @@ public class CommentControllerImpl implements CommentController {
     @RequestMapping(value = "/comments", method = RequestMethod.GET)
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<List<CommentEntity>> queryEntities(
-            Map<String, Object> params,
+            @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String name = params.getOrDefault("name", "").toString();
-        String summary = params.getOrDefault("summary", "").toString();
-        String userId = params.getOrDefault("user_id", "").toString();
+        String content = params.getOrDefault(Constants.CONTENT, Constants.DEFAULT_STRING).toString();
+        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
+        String articleId = params.getOrDefault(Constants.ARTICLE_ID, Constants.DEFAULT_STRING).toString();
         UserEntity userEntity = null;
-        if (StringUtils.isEmpty(userId)) {
+        ArticleEntity articleEntity = null;
+        if (!StringUtils.isEmpty(userId)) {
             userEntity = userService.findUserById(Integer.valueOf(userId));
         }
-        Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
-        Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
-        String[] descFilters = new String[]{};
-        String[] ascFilters = new String[]{};
-        List<CommentEntity> commentEntities = commentService.findCommentList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        if (!StringUtils.isEmpty(articleId)) {
+            articleEntity = articleService.findArticleById(Integer.valueOf(articleId));
+        }
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<CommentEntity> commentEntities = commentService.findCommentList(content, userEntity, articleEntity, page, size, descFilters, ascFilters);
         return new ResponseEntity<List<CommentEntity>>(commentEntities, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(value = "/comments", method = RequestMethod.HEAD)
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        ResponseEntity<List<CommentEntity>> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.getBody().size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
 }

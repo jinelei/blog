@@ -1,6 +1,7 @@
 package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.authorization.annotation.CurrentUser;
+import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.controller.UserController;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
@@ -222,20 +223,40 @@ public class UserControllerImpl implements UserController {
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<List<UserEntity>> queryEntities(
-            Map<String, Object> params,
+            @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
-        String username = params.getOrDefault("username", "").toString();
-        String nickname = params.getOrDefault("nickname", "").toString();
-        String phone = params.getOrDefault("phone", "").toString();
-        String city = params.getOrDefault("city", "").toString();
-        String province = params.getOrDefault("province", "").toString();
-        String email = params.getOrDefault("email", "").toString();
-        Integer page = Integer.valueOf(params.getOrDefault("page", "0").toString());
-        Integer size = Integer.valueOf(params.getOrDefault("size", "10").toString());
-        String[] descFilters = new String[]{};
-        String[] ascFilters = new String[]{};
+        String username = params.getOrDefault(Constants.USERNAME, Constants.DEFAULT_STRING).toString();
+        String nickname = params.getOrDefault(Constants.NICKNAME, Constants.DEFAULT_STRING).toString();
+        String phone = params.getOrDefault(Constants.PHONE, Constants.DEFAULT_STRING).toString();
+        String city = params.getOrDefault(Constants.CITY, Constants.DEFAULT_STRING).toString();
+        String province = params.getOrDefault(Constants.PROVINCE, Constants.DEFAULT_STRING).toString();
+        String email = params.getOrDefault(Constants.EMAIL, Constants.DEFAULT_STRING).toString();
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
         List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
         return new ResponseEntity<List<UserEntity>>(userEntities, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(value = "/users", method = RequestMethod.HEAD)
+    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        ResponseEntity<List<UserEntity>> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.getBody().size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
 
 }

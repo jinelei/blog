@@ -1,5 +1,6 @@
 package cn.jinelei.rainbow.blog.service;
 
+import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
@@ -19,7 +20,7 @@ public interface CommentService {
     CommentEntity findCommentById(Integer id) throws BlogException;
 
     List<CommentEntity> findCommentList(
-            String content, UserEntity commentCreator,
+            String content, UserEntity commentCreator, ArticleEntity articleEntity,
             Integer page, Integer size, String[] descFilters, String[] ascFilters) throws BlogException;
 }
 

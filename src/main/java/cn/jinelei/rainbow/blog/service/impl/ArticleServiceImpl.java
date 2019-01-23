@@ -115,11 +115,11 @@ public class ArticleServiceImpl implements ArticleService {
                 }
                 if (author != null) {
                     predicates.add(criteriaBuilder.equal(root.get("author").as(UserEntity.class),
-                            String.format("%%%s%%", author)));
+                            author));
                 }
                 if (category != null) {
                     predicates.add(criteriaBuilder.equal(root.get("category").as(CategoryEntity.class),
-                            String.format("%%%s%%", category)));
+                            category));
                 }
                 if (tags != null && tags.size() > 0) {
                     for (TagEntity tagEntity : tags) {
