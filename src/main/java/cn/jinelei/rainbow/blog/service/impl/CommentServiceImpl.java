@@ -94,14 +94,14 @@ public class CommentServiceImpl implements CommentService {
                 if (!StringUtils.isEmpty(content)) {
                     predicates.add(criteriaBuilder.like(root.get(Constants.CONTENT).as(String.class),
                             String.format("%%%s%%", content)));
-                    if (commentator != null) {
-                        predicates.add(criteriaBuilder.equal(root.get(Constants.COMMENTATOR).as(UserEntity.class),
-                                commentator));
-                    }
-                    if (articleEntity != null) {
-                        predicates.add(criteriaBuilder.equal(root.get(Constants.ARTICLE).as(ArticleEntity.class),
-                                articleEntity));
-                    }
+                }
+                if (commentator != null) {
+                    predicates.add(criteriaBuilder.equal(root.get(Constants.COMMENTATOR).as(UserEntity.class),
+                            commentator));
+                }
+                if (articleEntity != null) {
+                    predicates.add(criteriaBuilder.equal(root.get(Constants.ARTICLE).as(ArticleEntity.class),
+                            articleEntity));
                 }
                 Predicate[] predicateList = new Predicate[predicates.size()];
                 return criteriaBuilder.and(predicates.toArray(predicateList));
