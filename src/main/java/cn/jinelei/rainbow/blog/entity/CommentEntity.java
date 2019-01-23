@@ -1,5 +1,6 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -16,7 +17,7 @@ import java.util.Objects;
 @JacksonXmlRootElement(localName = "comment")
 @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class CommentEntity {
-    public interface BaseCommentView extends UserEntity.WithoutPasswordView {
+    public interface BaseCommentView extends UserEntity.WithoutPasswordView{
     }
 
     @Id
@@ -47,6 +48,7 @@ public class CommentEntity {
     @JsonView(value = BaseCommentView.class)
     private UserEntity commentator;
     @XmlElement
+    @JsonIgnore
     @ManyToOne(targetEntity = ArticleEntity.class)
     @JoinColumn(name = "article")
     @JsonView(value = BaseCommentView.class)

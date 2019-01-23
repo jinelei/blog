@@ -19,7 +19,11 @@ import java.util.Objects;
 @JacksonXmlRootElement(localName = "article")
 @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class ArticleEntity {
-    public interface BaseArticleView extends UserEntity.WithoutPasswordView{
+    public interface BaseArticleView extends
+            UserEntity.WithoutPasswordView,
+            CategoryEntity.BaseCategoryView,
+            CommentEntity.BaseCommentView,
+            TagEntity.BaseTagView {
     }
 
     @Id
@@ -67,7 +71,6 @@ public class ArticleEntity {
     private List<TagEntity> tags;
     @Column
     @XmlElement
-    @JsonIgnore
     @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "article")
     @JsonView(value = BaseArticleView.class)
     private List<CommentEntity> comments;

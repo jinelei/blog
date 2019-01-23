@@ -1,5 +1,6 @@
 package cn.jinelei.rainbow.blog.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -49,6 +50,7 @@ public class TagEntity {
     @JsonView(value = BaseTagView.class)
     private String summary;
     @XmlElement
+    @JsonIgnore
     @ManyToMany(targetEntity = ArticleEntity.class, mappedBy = "tags", fetch = FetchType.LAZY)
     @JsonView(value = BaseTagView.class)
     private List<ArticleEntity> articles;

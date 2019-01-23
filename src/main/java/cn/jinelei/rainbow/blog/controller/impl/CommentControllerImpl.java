@@ -6,6 +6,7 @@ import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.CommentService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -54,6 +55,9 @@ public class CommentControllerImpl implements CommentController {
 
     @Autowired
     UserService userService;
+    @Autowired
+    ArticleService articleService;
+
 
     @Override
     @RequestMapping(value = "/comment", method = RequestMethod.POST)
@@ -65,7 +69,16 @@ public class CommentControllerImpl implements CommentController {
                 && !operator.getUserId().equals(commentEntity.getCommentator().getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        commentEntity.setCommentator(userService.findUserById(commentEntity.getCommentator().getUserId()));
+        if (commentEntity.getCommentator() == null) {
+            commentEntity.setCommentator(operator);
+        } else {
+            commentEntity.setCommentator(userService.findUserById(commentEntity.getCommentator().getUserId()));
+        }
+        if (commentEntity.getArticle() != null) {
+            if (commentEntity.getArticle().getArticleId() != null) {
+                commentEntity.setArticle(articleService.findArticleById(commentEntity.getArticle().getArticleId()));
+            }
+        }
         CommentEntity opeartionResult = null;
         opeartionResult = commentService.addComment(commentEntity);
         HttpHeaders httpHeaders = new HttpHeaders();
