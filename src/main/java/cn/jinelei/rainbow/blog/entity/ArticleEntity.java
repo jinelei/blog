@@ -1,10 +1,10 @@
 package cn.jinelei.rainbow.blog.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import cn.jinelei.rainbow.blog.entity.enumerate.BrowsePrivilege;
+import cn.jinelei.rainbow.blog.entity.enumerate.CommentPrivilege;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hibernate.cache.spi.entry.CacheEntry;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
@@ -49,6 +49,16 @@ public class ArticleEntity {
     @JsonView(value = BaseArticleView.class)
     private String title;
     @XmlElement
+    @Convert(converter = CommentPrivilege.class)
+    @Column(name = "comment_privilege")
+    @JsonView(value = BaseArticleView.class)
+    private CommentPrivilege commentPrivilege = CommentPrivilege.ALLOW_MYSELF;
+    @XmlElement
+    @Convert(converter = BrowsePrivilege.class)
+    @Column(name = "browse_privilege")
+    @JsonView(value = BaseArticleView.class)
+    private BrowsePrivilege browsePrivilege = BrowsePrivilege.ALLOW_MYSELF;
+    @XmlElement
     @Column(name = "content", nullable = false, length = 4095)
     @JsonView(value = BaseArticleView.class)
     private String content;
@@ -91,14 +101,18 @@ public class ArticleEntity {
                 Objects.equals(author, that.author) &&
                 Objects.equals(category, that.category) &&
                 Objects.equals(tags, that.tags) &&
+                Objects.equals(commentPrivilege, that.commentPrivilege) &&
+                Objects.equals(browsePrivilege, that.browsePrivilege) &&
                 Objects.equals(comments, that.comments);
     }
 
-    public ArticleEntity(Long createTime, Long modifyTime, Long accessTime, String title, String content, UserEntity author, CategoryEntity category, List<TagEntity> tags, List<CommentEntity> comments) {
+    public ArticleEntity(Long createTime, Long modifyTime, Long accessTime, String title, CommentPrivilege commentPrivilege, BrowsePrivilege browsePrivilege, String content, UserEntity author, CategoryEntity category, List<TagEntity> tags, List<CommentEntity> comments) {
         this.createTime = createTime;
         this.modifyTime = modifyTime;
         this.accessTime = accessTime;
         this.title = title;
+        this.commentPrivilege = commentPrivilege;
+        this.browsePrivilege = browsePrivilege;
         this.content = content;
         this.author = author;
         this.category = category;
@@ -187,5 +201,21 @@ public class ArticleEntity {
 
     public void setComments(List<CommentEntity> comments) {
         this.comments = comments;
+    }
+
+    public CommentPrivilege getCommentPrivilege() {
+        return commentPrivilege;
+    }
+
+    public void setCommentPrivilege(CommentPrivilege commentPrivilege) {
+        this.commentPrivilege = commentPrivilege;
+    }
+
+    public BrowsePrivilege getBrowsePrivilege() {
+        return browsePrivilege;
+    }
+
+    public void setBrowsePrivilege(BrowsePrivilege browsePrivilege) {
+        this.browsePrivilege = browsePrivilege;
     }
 }
