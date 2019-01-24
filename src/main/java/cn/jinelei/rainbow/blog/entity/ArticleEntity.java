@@ -2,6 +2,8 @@ package cn.jinelei.rainbow.blog.entity;
 
 import cn.jinelei.rainbow.blog.entity.enumerate.BrowsePrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.CommentPrivilege;
+import cn.jinelei.rainbow.blog.entity.enumerate.convert.BrowsePrivilegeConvert;
+import cn.jinelei.rainbow.blog.entity.enumerate.convert.CommentPrivilegeConvert;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -49,12 +51,12 @@ public class ArticleEntity {
     @JsonView(value = BaseArticleView.class)
     private String title;
     @XmlElement
-    @Convert(converter = CommentPrivilege.class)
+    @Convert(converter = CommentPrivilegeConvert.class)
     @Column(name = "comment_privilege")
     @JsonView(value = BaseArticleView.class)
     private CommentPrivilege commentPrivilege = CommentPrivilege.ALLOW_MYSELF;
     @XmlElement
-    @Convert(converter = BrowsePrivilege.class)
+    @Convert(converter = BrowsePrivilegeConvert.class)
     @Column(name = "browse_privilege")
     @JsonView(value = BaseArticleView.class)
     private BrowsePrivilege browsePrivilege = BrowsePrivilege.ALLOW_MYSELF;

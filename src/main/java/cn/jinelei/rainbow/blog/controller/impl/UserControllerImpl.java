@@ -128,7 +128,7 @@ public class UserControllerImpl implements UserController {
                 && !operator.getUserId().equals(tmp.getUserId())) {
             throw new BlogException.UnAuthorized();
         }
-        return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override

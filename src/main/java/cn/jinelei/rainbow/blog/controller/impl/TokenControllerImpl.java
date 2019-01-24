@@ -7,11 +7,14 @@ import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.annotation.AccessType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 
 /**
  * @author zhenlei
@@ -38,6 +41,7 @@ public class TokenControllerImpl implements TokenController {
         TokenEntity tokenEntity = tokenService.createToken(user);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(tokenEntity.getToken());
+        httpHeaders.setAccessControlExposeHeaders(Collections.singletonList(HttpHeaders.AUTHORIZATION));
         return new ResponseEntity<>(new BlogException.UserLoginSuccess(), httpHeaders, HttpStatus.OK);
     }
 

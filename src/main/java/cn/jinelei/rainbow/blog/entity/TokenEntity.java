@@ -13,15 +13,15 @@ import javax.xml.bind.annotation.XmlElement;
 @Entity
 @Table(name = "token")
 @JacksonXmlRootElement(localName = "token")
-@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler", "fieldHandler"})
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class TokenEntity {
     @Id
     @XmlElement
-    @Column(unique = true, nullable = false, updatable = false, name = "token")
+    @Column(nullable = false, updatable = false, name = "token")
     private String token;
     @OneToOne
     @XmlElement
-    @JoinColumn(name = "user_id", referencedColumnName = "userId")
+    @JoinColumn(name = "user_id", referencedColumnName = "userId", unique = true, nullable = false)
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     private UserEntity userEntity;
     @Column(unique = true, length = 20)
