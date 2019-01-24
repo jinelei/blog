@@ -30,7 +30,7 @@ public class TokenControllerImpl implements TokenController {
     private TokenService tokenService;
 
     @Override
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> login(
             @RequestParam String username,
             @RequestParam String password) throws BlogException {
@@ -41,17 +41,22 @@ public class TokenControllerImpl implements TokenController {
         TokenEntity tokenEntity = tokenService.createToken(user);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(tokenEntity.getToken());
-        httpHeaders.setAccessControlExposeHeaders(Collections.singletonList(HttpHeaders.AUTHORIZATION));
         return new ResponseEntity<>(new BlogException.UserLoginSuccess(), httpHeaders, HttpStatus.OK);
     }
 
     @Override
-    @RequestMapping(method = RequestMethod.DELETE)
+    @RequestMapping(method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> logout(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) throws BlogException {
-        if (token.startsWith("Bearer ")) {
-            tokenService.deleteToken(token.replace("Bearer ", ""));
-            return new ResponseEntity<>(new BlogException.UserLogoutSuccess(), HttpStatus.OK);
+        if (!StringUtils.isEmpty(token)) {
+            if (token.startsWith("Bearer ")) {
+                tokenService.deleteToken(token.replace("Bearer ", ""));
+                return new ResponseEntity<>(new BlogException.UserLogoutSuccess(), HttpStatus.OK);
+            } else {
+                tokenService.deleteToken(token);
+                return new ResponseEntity<>(new BlogException.UserLogoutSuccess(), HttpStatus.OK);
+            }
+
         } else {
             return new ResponseEntity<>(new BlogException.UserLogoutFailed(), HttpStatus.BAD_REQUEST);
         }

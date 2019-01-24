@@ -42,11 +42,13 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.MULTIPART_FORM_DATA_VALUE,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.ALL_VALUE
         },
         produces = {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE
+                MediaType.APPLICATION_XML_VALUE,
+                MediaType.ALL_VALUE
         })
 public class CommentControllerImpl implements CommentController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CommentControllerImpl.class);
@@ -63,7 +65,7 @@ public class CommentControllerImpl implements CommentController {
 
 
     @Override
-    @RequestMapping(value = "/comment", method = RequestMethod.POST)
+    @RequestMapping(value = "/comment", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<CommentEntity> saveEntity(
             @RequestBody CommentEntity commentEntity,
@@ -92,7 +94,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comment", method = RequestMethod.PUT)
+    @RequestMapping(value = "/comment", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<CommentEntity> updateEntity(
             @RequestBody CommentEntity commentEntity,
@@ -113,7 +115,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comment", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/comment", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
@@ -131,7 +133,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comment", method = RequestMethod.GET)
+    @RequestMapping(value = "/comment", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<CommentEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
@@ -145,7 +147,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comments", method = RequestMethod.POST)
+    @RequestMapping(value = "/comments", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<List<CommentEntity>> saveEntities(
             @RequestBody List<CommentEntity> list,
@@ -173,7 +175,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comments", method = RequestMethod.PUT)
+    @RequestMapping(value = "/comments", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<List<CommentEntity>> updateEntities(
             @RequestBody List<CommentEntity> list,
@@ -201,7 +203,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comments", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/comments", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<List<CommentEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -233,7 +235,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comments", method = RequestMethod.GET)
+    @RequestMapping(value = "/comments", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public ResponseEntity<List<CommentEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
@@ -260,7 +262,7 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(value = "/comments", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/comments", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
     public ResponseEntity queryEntitiesSize(
             @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {

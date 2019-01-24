@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -36,11 +37,13 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.MULTIPART_FORM_DATA_VALUE,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.ALL_VALUE
         },
         produces = {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE
+                MediaType.APPLICATION_XML_VALUE,
+                MediaType.ALL_VALUE
         })
 @JsonView(value = UserEntity.WithoutPasswordView.class)
 public class UserControllerImpl implements UserController {
@@ -52,7 +55,7 @@ public class UserControllerImpl implements UserController {
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.POST)
+    @RequestMapping(value = "/user", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<UserEntity> saveEntity(
             @RequestBody UserEntity userEntity,
@@ -66,7 +69,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.PUT)
+    @RequestMapping(value = "/user", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<UserEntity> updateEntity(
             @RequestBody UserEntity userEntity,
@@ -99,7 +102,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/user", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
@@ -118,7 +121,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/user", method = RequestMethod.GET)
+    @RequestMapping(value = "/user", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<UserEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
@@ -132,7 +135,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.POST)
+    @RequestMapping(value = "/users", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<List<UserEntity>> saveEntities(
             @RequestBody List<UserEntity> list,
@@ -160,7 +163,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.PUT)
+    @RequestMapping(value = "/users", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<List<UserEntity>> updateEntities(
             @RequestBody List<UserEntity> list,
@@ -188,7 +191,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/users", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<List<UserEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -220,7 +223,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.GET)
+    @RequestMapping(value = "/users", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<List<UserEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
@@ -242,7 +245,7 @@ public class UserControllerImpl implements UserController {
     }
 
     @Override
-    @RequestMapping(value = "/users", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/users", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity queryEntitiesSize(
             @RequestParam Map<String, Object> params,

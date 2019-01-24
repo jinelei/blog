@@ -39,11 +39,13 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.MULTIPART_FORM_DATA_VALUE,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.ALL_VALUE
         },
         produces = {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE
+                MediaType.APPLICATION_XML_VALUE,
+                MediaType.ALL_VALUE
         })
 public class TagControllerImpl implements TagController {
     private static final Logger LOGGER = LoggerFactory.getLogger(TagControllerImpl.class);
@@ -57,7 +59,7 @@ public class TagControllerImpl implements TagController {
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/tag", method = RequestMethod.POST)
+    @RequestMapping(value = "/tag", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<TagEntity> saveEntity(
             @RequestBody TagEntity tagEntity,
@@ -81,7 +83,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tag", method = RequestMethod.PUT)
+    @RequestMapping(value = "/tag", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<TagEntity> updateEntity(
             @RequestBody TagEntity tagEntity,
@@ -105,7 +107,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tag", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/tag", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
@@ -123,7 +125,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tag", method = RequestMethod.GET)
+    @RequestMapping(value = "/tag", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<TagEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
@@ -137,7 +139,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tags", method = RequestMethod.POST)
+    @RequestMapping(value = "/tags", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<List<TagEntity>> saveEntities(
             @RequestBody List<TagEntity> list,
@@ -165,7 +167,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tags", method = RequestMethod.PUT)
+    @RequestMapping(value = "/tags", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<List<TagEntity>> updateEntities(
             @RequestBody List<TagEntity> list,
@@ -193,7 +195,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tags", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/tags", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<List<TagEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -225,7 +227,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tags", method = RequestMethod.GET)
+    @RequestMapping(value = "/tags", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public ResponseEntity<List<TagEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
@@ -248,7 +250,7 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(value = "/tags", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/tags", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
     public ResponseEntity queryEntitiesSize(
             @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {

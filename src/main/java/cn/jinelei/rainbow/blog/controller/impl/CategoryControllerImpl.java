@@ -42,11 +42,13 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.MULTIPART_FORM_DATA_VALUE,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.ALL_VALUE
         },
         produces = {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE
+                MediaType.APPLICATION_XML_VALUE,
+                MediaType.ALL_VALUE
         })
 public class CategoryControllerImpl implements CategoryController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryControllerImpl.class);
@@ -63,7 +65,7 @@ public class CategoryControllerImpl implements CategoryController {
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/category", method = RequestMethod.POST)
+    @RequestMapping(value = "/category", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<CategoryEntity> saveEntity(
             @RequestBody CategoryEntity categoryEntity,
@@ -87,7 +89,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/category", method = RequestMethod.PUT)
+    @RequestMapping(value = "/category", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<CategoryEntity> updateEntity(
             @RequestBody CategoryEntity categoryEntity,
@@ -111,7 +113,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/category", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/category", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
@@ -129,7 +131,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/category", method = RequestMethod.GET)
+    @RequestMapping(value = "/category", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<CategoryEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
@@ -143,7 +145,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categories", method = RequestMethod.POST)
+    @RequestMapping(value = "/categories", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> saveEntities(
             @RequestBody List<CategoryEntity> list,
@@ -171,7 +173,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categories", method = RequestMethod.PUT)
+    @RequestMapping(value = "/categories", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> updateEntities(
             @RequestBody List<CategoryEntity> list,
@@ -199,7 +201,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categories", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/categories", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -231,7 +233,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categories", method = RequestMethod.GET)
+    @RequestMapping(value = "/categories", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = CategoryEntity.BaseCategoryView.class)
     public ResponseEntity<List<CategoryEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
@@ -259,7 +261,7 @@ public class CategoryControllerImpl implements CategoryController {
     }
 
     @Override
-    @RequestMapping(value = "/categories", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/categories", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
     public ResponseEntity queryEntitiesSize(
             @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {

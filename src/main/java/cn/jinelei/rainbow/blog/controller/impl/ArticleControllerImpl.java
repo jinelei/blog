@@ -43,11 +43,13 @@ import java.util.Map;
                 MediaType.APPLICATION_XML_VALUE,
                 MediaType.MULTIPART_FORM_DATA_VALUE,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.ALL_VALUE
         },
         produces = {
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE
+                MediaType.APPLICATION_XML_VALUE,
+                MediaType.ALL_VALUE
         })
 public class ArticleControllerImpl implements ArticleController {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArticleControllerImpl.class);
@@ -67,7 +69,7 @@ public class ArticleControllerImpl implements ArticleController {
     CategoryService categoryService;
 
     @Override
-    @RequestMapping(value = "/article", method = RequestMethod.POST)
+    @RequestMapping(value = "/article", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<ArticleEntity> saveEntity(
             @RequestBody ArticleEntity articleEntity,
@@ -91,7 +93,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/article", method = RequestMethod.PUT)
+    @RequestMapping(value = "/article", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<ArticleEntity> updateEntity(
             @RequestBody ArticleEntity articleEntity,
@@ -124,7 +126,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/article", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/article", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
@@ -142,7 +144,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/article", method = RequestMethod.GET)
+    @RequestMapping(value = "/article", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<ArticleEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
@@ -156,7 +158,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/articles", method = RequestMethod.POST)
+    @RequestMapping(value = "/articles", method = {RequestMethod.POST, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> saveEntities(
             @RequestBody List<ArticleEntity> list,
@@ -184,7 +186,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/articles", method = RequestMethod.PUT)
+    @RequestMapping(value = "/articles", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> updateEntities(
             @RequestBody List<ArticleEntity> list,
@@ -212,7 +214,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/articles", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/articles", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> deleteEntitiesById(
             @RequestParam(name = "ids") List<Integer> ids,
@@ -244,7 +246,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/articles", method = RequestMethod.GET)
+    @RequestMapping(value = "/articles", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
@@ -288,7 +290,7 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(value = "/articles", method = RequestMethod.HEAD)
+    @RequestMapping(value = "/articles", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
     public ResponseEntity queryEntitiesSize(
             @RequestParam Map<String, Object> params,
             @CurrentUser UserEntity operator) throws BlogException {
