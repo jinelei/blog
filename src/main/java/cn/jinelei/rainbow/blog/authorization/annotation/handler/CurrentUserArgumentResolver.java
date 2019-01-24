@@ -9,6 +9,8 @@ import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -57,7 +59,9 @@ public class CurrentUserArgumentResolver extends HandlerInterceptorAdapter imple
         String authorizationToken = request.getHeader(Constants.AUTHORIZATION);
         TokenEntity tokenEntity = null;
         if (!StringUtils.isEmpty(authorizationToken)) {
-            authorizationToken = authorizationToken.split(" ")[1];
+            if (authorizationToken.startsWith("Bearer ")) {
+                authorizationToken = authorizationToken.split(" ")[1];
+            }
             tokenEntity = tokenService.getToken(authorizationToken);
         }
         if (isCurrentUserRequire && tokenEntity == null) {
