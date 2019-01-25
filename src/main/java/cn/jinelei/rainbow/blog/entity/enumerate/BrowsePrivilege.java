@@ -6,9 +6,9 @@ package cn.jinelei.rainbow.blog.entity.enumerate;
 
 public enum BrowsePrivilege {
     INVALID_VALUE(0, "invalid value"),
-    ALLOW_MYSELF(1, "disallow all"),
-    ALLOW_FRIEND(4, "allow friend"),
-    ALLOW_ALL(2, "allow all");
+    ALLOW_MYSELF(1, "disallow myself"),
+    ALLOW_FRIEND(2, "allow friend"),
+    ALLOW_ALL(4, "allow all");
     private int code;
     private String desc;
 

@@ -15,6 +15,9 @@ public class BrowsePrivilegeConvert implements AttributeConverter<BrowsePrivileg
 
     @Override
     public BrowsePrivilege convertToEntityAttribute(Integer dbData) {
+        if (dbData == null) {
+            return BrowsePrivilege.INVALID_VALUE;
+        }
         return BrowsePrivilege.resolve(dbData);
     }
 }
