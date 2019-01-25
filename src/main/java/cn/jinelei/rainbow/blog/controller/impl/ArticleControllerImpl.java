@@ -7,6 +7,7 @@ import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
+import cn.jinelei.rainbow.blog.entity.enumerate.BrowsePrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.ArticleService;
@@ -30,6 +31,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author zhenlei
@@ -250,7 +253,7 @@ public class ArticleControllerImpl implements ArticleController {
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<List<ArticleEntity>> queryEntities(
             @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
+            @CurrentUser(require = false) UserEntity operator) throws BlogException {
         String title = params.getOrDefault(Constants.TITLE, Constants.DEFAULT_STRING).toString();
         UserEntity author = null;
         if (params.containsKey(Constants.AUTHOR)) {
@@ -285,7 +288,17 @@ public class ArticleControllerImpl implements ArticleController {
                 ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
         String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
                 ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        List<ArticleEntity> articleEntities = articleService.findArticleList(title, author, category, tags, page, size, descFilters, ascFilters);
+        List<ArticleEntity> tmp = articleService.findArticleList(title, author, category, tags, page, size, descFilters, ascFilters);
+        List<ArticleEntity> articleEntities = tmp.stream().filter(articleEntity -> {
+            if (articleEntity.getBrowsePrivilege().equals(BrowsePrivilege.ALLOW_MYSELF)
+                    && articleEntity.getAuthor().equals(operator)) {
+                return true;
+            }
+            if (articleEntity.getBrowsePrivilege().equals(BrowsePrivilege.ALLOW_ALL)) {
+                return true;
+            }
+            return false;
+        }).collect(Collectors.toList());
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }
 
