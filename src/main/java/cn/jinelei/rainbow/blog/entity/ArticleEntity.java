@@ -51,13 +51,13 @@ public class ArticleEntity {
     @JsonView(value = BaseArticleView.class)
     private String title;
     @XmlElement
+    @Column
     @Convert(converter = CommentPrivilegeConvert.class)
-    @Column(name = "comment_privilege")
     @JsonView(value = BaseArticleView.class)
     private CommentPrivilege commentPrivilege = CommentPrivilege.ALLOW_MYSELF;
     @XmlElement
+    @Column
     @Convert(converter = BrowsePrivilegeConvert.class)
-    @Column(name = "browse_privilege")
     @JsonView(value = BaseArticleView.class)
     private BrowsePrivilege browsePrivilege = BrowsePrivilege.ALLOW_MYSELF;
     @XmlElement

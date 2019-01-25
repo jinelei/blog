@@ -74,7 +74,6 @@ public class UserEntity {
     @XmlElement
     @JsonIgnore
     @OneToMany(targetEntity = ArticleEntity.class, cascade = CascadeType.REFRESH, mappedBy = "author", fetch = FetchType.LAZY)
-    @JsonView(WithoutPasswordView.class)
     private List<ArticleEntity> articles;
     @Column
     @XmlElement
