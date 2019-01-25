@@ -3,6 +3,7 @@ package cn.jinelei.rainbow.blog.controller;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
+import cn.jinelei.rainbow.blog.entity.UserEntity;
 
 /**
  * @author zhenlei
@@ -17,7 +18,7 @@ public interface TokenController {
      * @return
      * @throws BlogException
      */
-    public ResponseEntity<BlogException> login(@RequestParam String username, @RequestParam String password)
+    public ResponseEntity<UserEntity> login(@RequestParam String username, @RequestParam String password)
             throws BlogException;
 
     /**

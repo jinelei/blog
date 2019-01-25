@@ -31,7 +31,7 @@ public class TokenControllerImpl implements TokenController {
 
     @Override
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
-    public ResponseEntity<BlogException> login(
+    public ResponseEntity<UserEntity> login(
             @RequestParam String username,
             @RequestParam String password) throws BlogException {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
@@ -41,7 +41,7 @@ public class TokenControllerImpl implements TokenController {
         TokenEntity tokenEntity = tokenService.createToken(user);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setBearerAuth(tokenEntity.getToken());
-        return new ResponseEntity<>(new BlogException.UserLoginSuccess(), httpHeaders, HttpStatus.OK);
+        return new ResponseEntity<>(user, httpHeaders, HttpStatus.OK);
     }
 
     @Override
