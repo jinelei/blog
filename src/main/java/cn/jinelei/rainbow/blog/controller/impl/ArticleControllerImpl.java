@@ -151,13 +151,25 @@ public class ArticleControllerImpl implements ArticleController {
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ResponseEntity<ArticleEntity> queryEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException {
+            @CurrentUser(require = false) UserEntity operator) throws BlogException {
         ArticleEntity tmp = articleService.findArticleById(id);
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
-            throw new BlogException.UnAuthorized();
+        switch (tmp.getBrowsePrivilege()) {
+            case ALLOW_ALL:
+                return new ResponseEntity<>(tmp, HttpStatus.OK);
+            case ALLOW_MYSELF:
+                if (operator != null
+                        && tmp.getAuthor().getUserId() != null
+                        && tmp.getAuthor().getUserId().equals(operator.getUserId())) {
+                    return new ResponseEntity<>(tmp, HttpStatus.OK);
+                } else {
+                    throw new BlogException.UnAuthorized();
+                }
+            case ALLOW_FRIEND:
+            case INVALID_VALUE:
+            default:
+                throw new BlogException.UnAuthorized();
+
         }
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
     }
 
     @Override
@@ -290,14 +302,23 @@ public class ArticleControllerImpl implements ArticleController {
                 ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
         List<ArticleEntity> tmp = articleService.findArticleList(title, author, category, tags, page, size, descFilters, ascFilters);
         List<ArticleEntity> articleEntities = tmp.stream().filter(articleEntity -> {
-            if (articleEntity.getBrowsePrivilege().equals(BrowsePrivilege.ALLOW_MYSELF)
-                    && articleEntity.getAuthor().equals(operator)) {
-                return true;
+            switch (articleEntity.getBrowsePrivilege()) {
+                case ALLOW_ALL:
+                    return true;
+                case ALLOW_MYSELF:
+                    if (operator != null
+                            && articleEntity.getAuthor().getUserId() != null
+                            && articleEntity.getAuthor().getUserId().equals(operator.getUserId())) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                case ALLOW_FRIEND:
+                case INVALID_VALUE:
+                default:
+                    return false;
+
             }
-            if (articleEntity.getBrowsePrivilege().equals(BrowsePrivilege.ALLOW_ALL)) {
-                return true;
-            }
-            return false;
         }).collect(Collectors.toList());
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }
