@@ -8,6 +8,7 @@ import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.BrowsePrivilege;
+import cn.jinelei.rainbow.blog.entity.enumerate.CommentPrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.ArticleService;
@@ -120,6 +121,12 @@ public class ArticleControllerImpl implements ArticleController {
         }
         if (articleEntity.getCategory() != null) {
             tmp.setCategory(articleEntity.getCategory());
+        }
+        if (articleEntity.getBrowsePrivilege() != null) {
+            tmp.setBrowsePrivilege(articleEntity.getBrowsePrivilege());
+        }
+        if (articleEntity.getCommentPrivilege() != null) {
+            tmp.setCommentPrivilege(articleEntity.getCommentPrivilege());
         }
         Instant now = Instant.now();
         tmp.setAccessTime(now.toEpochMilli());
@@ -339,4 +346,25 @@ public class ArticleControllerImpl implements ArticleController {
         httpHeaders.setContentLength(responseEntity.getBody().size());
         return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
+
+    @Override
+    @RequestMapping(value = "/article/browse-privilege", method = {RequestMethod.GET, RequestMethod.OPTIONS})
+    public List<BrowsePrivilege> getBrowsePrivilege() {
+        List<BrowsePrivilege> privileges = new ArrayList<>();
+        privileges.add(BrowsePrivilege.ALLOW_MYSELF);
+        privileges.add(BrowsePrivilege.ALLOW_FRIEND);
+        privileges.add(BrowsePrivilege.ALLOW_ALL);
+        return privileges;
+    }
+
+    @Override
+    @RequestMapping(value = "/article/comment-privilege", method = {RequestMethod.GET, RequestMethod.OPTIONS})
+    public List<CommentPrivilege> getCommentPrivilege() {
+        List<CommentPrivilege> privileges = new ArrayList<>();
+        privileges.add(CommentPrivilege.ALLOW_MYSELF);
+        privileges.add(CommentPrivilege.ALLOW_FRIEND);
+        privileges.add(CommentPrivilege.ALLOW_ALL);
+        return privileges;
+    }
+
 }
