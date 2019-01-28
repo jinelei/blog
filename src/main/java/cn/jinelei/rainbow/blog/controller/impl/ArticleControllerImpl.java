@@ -308,25 +308,47 @@ public class ArticleControllerImpl implements ArticleController {
         String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
                 ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
         List<ArticleEntity> tmp = articleService.findArticleList(title, author, category, tags, page, size, descFilters, ascFilters);
-        List<ArticleEntity> articleEntities = tmp.stream().filter(articleEntity -> {
+        List<ArticleEntity> articleEntities = new ArrayList<>(tmp.size());
+        for (ArticleEntity articleEntity : tmp) {
             switch (articleEntity.getBrowsePrivilege()) {
                 case ALLOW_ALL:
-                    return true;
+                    articleEntities.add(articleEntity);
+                    continue;
                 case ALLOW_MYSELF:
                     if (operator != null
                             && articleEntity.getAuthor().getUserId() != null
                             && articleEntity.getAuthor().getUserId().equals(operator.getUserId())) {
-                        return true;
+                        articleEntities.add(articleEntity);
+                        continue;
                     } else {
-                        return false;
+                        continue;
                     }
                 case ALLOW_FRIEND:
                 case INVALID_VALUE:
                 default:
-                    return false;
+                    continue;
 
             }
-        }).collect(Collectors.toList());
+        }
+//        List<ArticleEntity> articleEntities = tmp.stream().filter(articleEntity -> {
+//            switch (articleEntity.getBrowsePrivilege()) {
+//                case ALLOW_ALL:
+//                    return true;
+//                case ALLOW_MYSELF:
+//                    if (operator != null
+//                            && articleEntity.getAuthor().getUserId() != null
+//                            && articleEntity.getAuthor().getUserId().equals(operator.getUserId())) {
+//                        return true;
+//                    } else {
+//                        return false;
+//                    }
+//                case ALLOW_FRIEND:
+//                case INVALID_VALUE:
+//                default:
+//                    return false;
+//
+//            }
+//        }).collect(Collectors.toList());
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }
 
