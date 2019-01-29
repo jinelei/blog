@@ -6,6 +6,7 @@ import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.http.HttpHeaders;
@@ -31,6 +32,7 @@ public class TokenControllerImpl implements TokenController {
 
     @Override
     @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @JsonView(UserEntity.WithoutPasswordView.class)
     public ResponseEntity<UserEntity> login(
             @RequestParam String username,
             @RequestParam String password) throws BlogException {

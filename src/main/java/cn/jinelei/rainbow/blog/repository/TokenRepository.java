@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author zhenlei
@@ -14,4 +15,11 @@ import java.util.List;
 @Repository
 public interface TokenRepository extends CrudRepository<TokenEntity, String>,
         JpaSpecificationExecutor<UserEntity> {
+    /**
+     * 通过用户实例查询Token
+     *
+     * @param userEntity
+     * @return
+     */
+    Optional<TokenEntity> findTokenEntityByUserEntity(UserEntity userEntity);
 }

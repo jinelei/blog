@@ -28,6 +28,10 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public TokenEntity createToken(UserEntity userEntity) {
+        Optional<TokenEntity> optional = tokenRepository.findTokenEntityByUserEntity(userEntity);
+        if (optional.isPresent()) {
+            tokenRepository.delete(optional.get());
+        }
         String uuid = UUID.randomUUID().toString().replace("-", "").toString();
         Instant now = Instant.now();
         TokenEntity tokenEntity = new TokenEntity(

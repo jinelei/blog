@@ -199,4 +199,13 @@ public class BlogException extends Exception {
     public static class ArticleAlreadyExist extends BlogException {
         BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.ARTICLE_ALREADY_EXIST;
     }
+
+    public static class EmptyImage extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.EMPTY_IMAGE;
+    }
+
+    public static class UploadImageFailed extends BlogException {
+        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UPLOAD_IMAGE_FAILED;
+    }
+
 }

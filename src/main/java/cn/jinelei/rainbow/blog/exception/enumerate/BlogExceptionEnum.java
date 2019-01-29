@@ -64,6 +64,8 @@ public enum BlogExceptionEnum {
     /**
      * 保留错误码
      */
+    UPLOAD_IMAGE_FAILED(999997, "upload image failed"),
+    EMPTY_IMAGE(999998, "empty image"),
     UNKNOWN_ERROR(999999, "unknown error");
     private int code;
     private String message;
