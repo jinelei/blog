@@ -44,7 +44,7 @@ public class CategoryEntity {
     @JsonView(BaseCategoryView.class)
     private String name;
     @XmlElement
-    @Column(name = "summarty", nullable = true, length = 255)
+    @Column(name = "summary", nullable = true, length = 255)
     @JsonView(BaseCategoryView.class)
     private String summary;
     @XmlElement
