@@ -32,7 +32,6 @@ public class TokenServiceImpl implements TokenService {
         TokenEntity operateResult = null;
         Instant now = Instant.now();
         if (optional.isPresent()) {
-            tokenRepository.delete(optional.get());
             TokenEntity tmp = optional.get();
             tmp.setExpiryDate(now.plus(1L, ChronoUnit.DAYS).toEpochMilli());
             operateResult = tokenRepository.save(tmp);
