@@ -14,6 +14,7 @@ public class BlogException extends Exception {
 
     int code;
     String message;
+    String describe;
 
     public int getCode() {
         try {
@@ -24,6 +25,10 @@ public class BlogException extends Exception {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             return this.blogExceptionEnum.getCode();
         }
+    }
+
+    public String getDescribe() {
+        return describe;
     }
 
     @Override
@@ -46,6 +51,14 @@ public class BlogException extends Exception {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             return this.blogExceptionEnum;
         }
+    }
+
+    public BlogException(String describe) {
+        super();
+        this.describe = describe;
+    }
+
+    public BlogException() {
     }
 
     public static class InsertDataError extends BlogException {

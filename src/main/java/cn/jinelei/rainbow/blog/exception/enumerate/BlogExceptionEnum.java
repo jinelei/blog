@@ -8,12 +8,17 @@ public enum BlogExceptionEnum {
     /**
      * 基础错误码
      */
-    INSERT_DATA_ERROR(900001, "insert data error"),
-    UPDATE_DATA_ERROR(900002, "update data error"),
-    DELETE_DATA_ERROR(900004, "remove data error"),
-    QUERY_DATA_ERROR(900008, "query data error"),
-    TOKEN_NOT_EFFECTIVE(900016, "token not effective"),
-    TOKEN_IS_EXPIRED(900032, "token is expired"),
+    INSERT_DATA_ERROR(900010, "insert data error"),
+    INSERT_DATA_ERROR_WITH_ALREADY_EXIST_FIELD(900011, "insert data error: already exist field"),
+    UPDATE_DATA_ERROR(900020, "update data error"),
+    DELETE_DATA_ERROR(900030, "remove data error"),
+    QUERY_DATA_ERROR(900040, "query data error"),
+    DATA_NOT_FOUND(900050, "query data not found"),
+    /**
+     * token错误码
+     */
+    TOKEN_NOT_EFFECTIVE(900032, "token not effective"),
+    TOKEN_IS_EXPIRED(900064, "token is expired"),
     /**
      * 用户错误码
      */
