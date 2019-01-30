@@ -18,17 +18,24 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class GlobalExceptionhandler {
 
+    @ExceptionHandler(value = {BlogException.QueryDataError.class})
+    @ResponseBody
+    @JsonAnyGetter
+    public ResponseEntity<BlogException.QueryDataError> handleBlogExceptionQueryDataErr(BlogException.QueryDataError e) {
+        return new ResponseEntity<>(e, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(value = {BlogException.class})
     @ResponseBody
     @JsonAnyGetter
     public ResponseEntity<BlogException> handleBlogException(BlogException e) {
-        return new ResponseEntity<BlogException>(e, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(e, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(value = {Exception.class})
     @ResponseBody
     public ResponseEntity<Exception> handleException(Exception e) {
-        return new ResponseEntity<Exception>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

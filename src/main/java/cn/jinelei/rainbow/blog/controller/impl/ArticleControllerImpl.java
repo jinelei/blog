@@ -330,25 +330,9 @@ public class ArticleControllerImpl implements ArticleController {
 
             }
         }
-//        List<ArticleEntity> articleEntities = tmp.stream().filter(articleEntity -> {
-//            switch (articleEntity.getBrowsePrivilege()) {
-//                case ALLOW_ALL:
-//                    return true;
-//                case ALLOW_MYSELF:
-//                    if (operator != null
-//                            && articleEntity.getAuthor().getUserId() != null
-//                            && articleEntity.getAuthor().getUserId().equals(operator.getUserId())) {
-//                        return true;
-//                    } else {
-//                        return false;
-//                    }
-//                case ALLOW_FRIEND:
-//                case INVALID_VALUE:
-//                default:
-//                    return false;
-//
-//            }
-//        }).collect(Collectors.toList());
+        if (articleEntities.size() == 0) {
+            throw new BlogException.QueryDataError();
+        }
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }
 

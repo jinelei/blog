@@ -8,7 +8,7 @@ logging:
     cn.jinelei.rainbow.blog: debug
 spring:
   profiles:
-    active: dev
+    active: prod
   jpa:
     database: mysql
     show-sql: false
@@ -34,7 +34,6 @@ spring:
     url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&useSSL=false
     username: jinelei
     password: jinjinjin
-    driver-class-name: com.mysql.cj.jdbc.Driver
 
 ---
 spring:
@@ -42,5 +41,5 @@ spring:
   datasource:
     url: jdbc:mysql://jinelei.cn:3306/blog?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8
     username: jinelei
-    password: jin
+    password: jinjinjin
 
