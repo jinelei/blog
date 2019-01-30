@@ -27,7 +27,14 @@ upload:
   file:
     image: /file/image
 
-
+---
+spring:
+  profiles: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&useSSL=false
+    username: jinelei
+    password: jinjinjin
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 ---
 spring:
@@ -37,14 +44,3 @@ spring:
     username: jinelei
     password: jin
 
-
-
-
-
----
-spring:
-  profiles: dev
-  datasource:
-    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf8&characterSetResults=utf8&useSSL=false
-    username: jinelei
-    password: jinjinjin
