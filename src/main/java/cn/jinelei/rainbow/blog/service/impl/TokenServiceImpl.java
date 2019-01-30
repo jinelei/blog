@@ -29,17 +29,22 @@ public class TokenServiceImpl implements TokenService {
     @Override
     public TokenEntity createToken(UserEntity userEntity) {
         Optional<TokenEntity> optional = tokenRepository.findTokenEntityByUserEntity(userEntity);
+        TokenEntity operateResult = null;
+        Instant now = Instant.now();
         if (optional.isPresent()) {
             tokenRepository.delete(optional.get());
+            TokenEntity tmp = optional.get();
+            tmp.setExpiryDate(now.plus(1L, ChronoUnit.DAYS).toEpochMilli());
+            operateResult = tokenRepository.save(tmp);
+        } else {
+            String uuid = UUID.randomUUID().toString().replace("-", "").toString();
+            TokenEntity tokenEntity = new TokenEntity(
+                    userEntity,
+                    uuid,
+                    now.toEpochMilli(),
+                    now.plus(1L, ChronoUnit.DAYS).toEpochMilli());
+            operateResult = tokenRepository.save(tokenEntity);
         }
-        String uuid = UUID.randomUUID().toString().replace("-", "").toString();
-        Instant now = Instant.now();
-        TokenEntity tokenEntity = new TokenEntity(
-                userEntity,
-                uuid,
-                now.toEpochMilli(),
-                now.plus(1L, ChronoUnit.DAYS).toEpochMilli());
-        TokenEntity operateResult = tokenRepository.save(tokenEntity);
         return operateResult;
     }
 
