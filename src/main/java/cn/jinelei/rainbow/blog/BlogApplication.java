@@ -1,26 +1,20 @@
 package cn.jinelei.rainbow.blog;
 
-import cn.jinelei.rainbow.blog.authorization.annotation.handler.AuthorizationInterceptor;
 import cn.jinelei.rainbow.blog.authorization.annotation.handler.CurrentUserArgumentResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.unit.DataSize;
 import org.springframework.util.unit.DataUnit;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import javax.servlet.MultipartConfigElement;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -63,8 +57,8 @@ public class BlogApplication extends WebMvcConfigurerAdapter {
     @Bean
     public MultipartConfigElement multipartConfigElement() {
         MultipartConfigFactory factory = new MultipartConfigFactory();
-        factory.setMaxFileSize(DataSize.of(2,DataUnit.MEGABYTES));
-        factory.setMaxRequestSize(DataSize.of(2,DataUnit.MEGABYTES));
+        factory.setMaxFileSize(DataSize.of(2, DataUnit.MEGABYTES));
+        factory.setMaxRequestSize(DataSize.of(2, DataUnit.MEGABYTES));
 //        factory.setLocation();
         return factory.createMultipartConfig();
     }
