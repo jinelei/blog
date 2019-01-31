@@ -36,6 +36,39 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = {BlogException.class, Exception.class})
     public UserEntity addUser(UserEntity userEntity) throws BlogException {
+        if (StringUtils.isEmpty(userEntity.getUsername())) {
+            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "username is empty").build();
+        }
+        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(Constants.USERNAME).as(String.class), userEntity.getUsername())
+
+        ).isPresent()) {
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "username already exist: " + userEntity.getUsername()).build();
+        }
+        if (StringUtils.isEmpty(userEntity.getPassword())) {
+            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "password is empty").build();
+        }
+        if (StringUtils.isEmpty(userEntity.getPhone())) {
+            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "phone is empty").build();
+        }
+        if (userEntity.getPhone().length() < 8) {
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "password is not strong").build();
+        }
+        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone())
+
+        ).isPresent()) {
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
+        }
+        if (StringUtils.isEmpty(userEntity.getEmail())) {
+            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "email is empty").build();
+        }
+        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get(Constants.EMAIL).as(String.class), userEntity.getEmail())
+
+        ).isPresent()) {
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
+        }
         UserEntity saveResult = userRepository.save(userEntity);
         if (!saveResult.equalsWithId(userEntity)) {
             throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, userEntity.toString()).build();

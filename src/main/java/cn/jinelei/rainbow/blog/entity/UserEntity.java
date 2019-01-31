@@ -22,10 +22,13 @@ import java.util.Objects;
 @Entity
 @Table(name = "user")
 @JacksonXmlRootElement(localName = "user")
-@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler", "fieldHandler"})
+@JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
 public class UserEntity {
-    public interface WithoutPasswordView {};
-    public interface WithPasswordView extends WithoutPasswordView {};
+    public interface WithoutPasswordView {
+    }
+
+    public interface WithPasswordView extends WithoutPasswordView {
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
