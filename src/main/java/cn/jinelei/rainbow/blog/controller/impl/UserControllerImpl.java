@@ -8,6 +8,7 @@ import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.UserService;
+import cn.jinelei.rainbow.blog.utils.CheckUtils;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ import java.util.Map;
 @RestController
 @ResponseBody
 @RequestMapping(
+        value = "/users",
         consumes = {
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -57,26 +59,75 @@ public class UserControllerImpl implements UserController {
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/user", method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> saveEntity(
-            @RequestBody UserEntity userEntity,
-            @CurrentUser(require = false) UserEntity operator) throws BlogException {
-        UserEntity opeartionResult = userService.addUser(userEntity);
-        return new ResponseEntity<UserEntity>(opeartionResult, HttpStatus.CREATED);
+    public UserEntity queryEntityById(
+            @PathVariable(name = "id") Integer id,
+            @CurrentUser UserEntity operator) throws BlogException {
+        CheckUtils.checkOwnerAndGroup(operator, id);
+        UserEntity tmp = userService.findUserById(id);
+        return tmp;
     }
 
     @Override
-    @RequestMapping(value = "/user", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> updateEntity(
+    public List<UserEntity> queryEntities(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        String username = params.getOrDefault(Constants.USERNAME, Constants.DEFAULT_STRING).toString();
+        String nickname = params.getOrDefault(Constants.NICKNAME, Constants.DEFAULT_STRING).toString();
+        String phone = params.getOrDefault(Constants.PHONE, Constants.DEFAULT_STRING).toString();
+        String city = params.getOrDefault(Constants.CITY, Constants.DEFAULT_STRING).toString();
+        String province = params.getOrDefault(Constants.PROVINCE, Constants.DEFAULT_STRING).toString();
+        String email = params.getOrDefault(Constants.EMAIL, Constants.DEFAULT_STRING).toString();
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
+        return userEntities;
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
+    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        List<UserEntity> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public UserEntity saveEntity(
+            @RequestBody UserEntity userEntity,
+            @CurrentUser(require = false) UserEntity operator) throws BlogException {
+        UserEntity opeartionResult = userService.addUser(userEntity);
+        return operator;
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @JsonView(value = UserEntity.WithoutPasswordView.class)
+    public UserEntity updateEntity(
             @RequestBody UserEntity userEntity,
             @CurrentUser UserEntity operator) throws BlogException {
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(userEntity.getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
         UserEntity tmp = userService.findUserById(userEntity.getUserId());
+        CheckUtils.checkOwnerAndGroup(operator, userEntity.getUserId());
         if (!StringUtils.isEmpty(userEntity.getNickname())) {
             tmp.setNickname(userEntity.getNickname());
         }
@@ -96,168 +147,23 @@ public class UserControllerImpl implements UserController {
             tmp.setCity(userEntity.getCity());
         }
         userService.updateUser(tmp);
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
+        return tmp;
     }
 
     @Override
-    @RequestMapping(value = "/user", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<BlogException> deleteEntityById(
-            @RequestParam(name = "id") Integer id,
+    public void deleteEntityById(
+            @PathVariable(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
+        CheckUtils.checkOwnerAndGroup(operator, id);
         UserEntity tmp = userService.findUserById(id);
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
         try {
             userService.removeUser(tmp);
-            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_USER_SUCCESS, "id: " + id).build(), HttpStatus.OK);
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_USER_SUCCESS, "id: " + id).build();
         } catch (Exception e) {
             throw new BlogException.Builder(BlogExceptionEnum.DELETE_USER_FAILED, "id: " + id).build();
         }
-    }
-
-    @Override
-    @RequestMapping(value = "/user", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<UserEntity> queryEntityById(
-            @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException {
-        UserEntity tmp = userService.findUserById(id);
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
-    }
-
-    @Override
-    @RequestMapping(value = "/users", method = {RequestMethod.POST, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> saveEntities(
-            @RequestBody List<UserEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = saveEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/users", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> updateEntities(
-            @RequestBody List<UserEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (UserEntity tmp : list) {
-                ResponseEntity<UserEntity> res = updateEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/users", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> deleteEntitiesById(
-            @RequestParam(name = "ids") List<Integer> ids,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<UserEntity> operateFailed = new ArrayList<>(ids.size());
-        try {
-            for (Integer id : ids) {
-                try {
-                    ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (!HttpStatus.OK.equals(res.getStatusCode())) {
-                        operateFailed.add(userService.findUserById(id));
-                    }
-                } catch (Exception e) {
-                    continue;
-                }
-            }
-            return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateFailed.size() == 0) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.BAD_REQUEST);
-            } else if (operateFailed.size() > 0 && operateFailed.size() < ids.size()) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateFailed, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/users", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity<List<UserEntity>> queryEntities(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        String username = params.getOrDefault(Constants.USERNAME, Constants.DEFAULT_STRING).toString();
-        String nickname = params.getOrDefault(Constants.NICKNAME, Constants.DEFAULT_STRING).toString();
-        String phone = params.getOrDefault(Constants.PHONE, Constants.DEFAULT_STRING).toString();
-        String city = params.getOrDefault(Constants.CITY, Constants.DEFAULT_STRING).toString();
-        String province = params.getOrDefault(Constants.PROVINCE, Constants.DEFAULT_STRING).toString();
-        String email = params.getOrDefault(Constants.EMAIL, Constants.DEFAULT_STRING).toString();
-        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
-        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
-        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        List<UserEntity> userEntities = userService.findUserList(username, nickname, phone, city, province, email, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<UserEntity>>(userEntities, HttpStatus.OK);
-    }
-
-    @Override
-    @RequestMapping(value = "/users", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
-    @JsonView(value = UserEntity.WithoutPasswordView.class)
-    public ResponseEntity queryEntitiesSize(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        if (!params.containsKey(Constants.SIZE)) {
-            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
-        }
-        if (!params.containsKey(Constants.PAGE)) {
-            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
-        }
-        ResponseEntity<List<UserEntity>> responseEntity = queryEntities(params, operator);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentLength(responseEntity.getBody().size());
-        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
     }
 
 }

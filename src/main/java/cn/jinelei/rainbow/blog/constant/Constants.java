@@ -63,9 +63,6 @@ public class Constants {
     public static final String DELETE_CATEGORY_FAILED_STR = "Delete Category Failed";
     public static final String UPLOAD_IMAGE_FAILED_STR = "Upload Image Failed";
     public static final String EMPTY_IMAGE_STR = "Empty Image";
-    public static final String EMAIL_ALREADY_EXIST_STR = "Email Already Exist";
-    public static final String PHONE_ALREADY_EXIST_STR = "Phone Already Exist";
-    public static final String USERNAME_NOT_UNIQUE_STR = "Username Not Unique";
     public static final String UNAUTHORIZED_STR = "Unauthorized";
     public static final String USER_NOT_FOUND_STR = "User Not Found";
     public static final String NEED_FIELD_STR = "Need Field";

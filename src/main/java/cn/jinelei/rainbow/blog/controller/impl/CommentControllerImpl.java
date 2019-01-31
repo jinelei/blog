@@ -37,6 +37,7 @@ import java.util.Map;
 @RestController
 @ResponseBody
 @RequestMapping(
+        value = "/comments",
         consumes = {
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -64,11 +65,69 @@ public class CommentControllerImpl implements CommentController {
     @Autowired
     ArticleService articleService;
 
+    @Override
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.GET, RequestMethod.OPTIONS})
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    public CommentEntity queryEntityById(
+            @PathVariable(name = "id") Integer id,
+            @CurrentUser UserEntity operator) throws BlogException {
+        CommentEntity tmp = commentService.findCommentById(id);
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
+        }
+        return tmp;
+    }
 
     @Override
-    @RequestMapping(value = "/comment", method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<CommentEntity> saveEntity(
+    public List<CommentEntity> queryEntities(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        String content = params.getOrDefault(Constants.CONTENT, Constants.DEFAULT_STRING).toString();
+        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
+        String articleId = params.getOrDefault(Constants.ARTICLE_ID, Constants.DEFAULT_STRING).toString();
+        UserEntity userEntity = null;
+        ArticleEntity articleEntity = null;
+        if (!StringUtils.isEmpty(userId)) {
+            userEntity = userService.findUserById(Integer.valueOf(userId));
+        }
+        if (!StringUtils.isEmpty(articleId)) {
+            articleEntity = articleService.findArticleById(Integer.valueOf(articleId));
+        }
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<CommentEntity> commentEntities = commentService.findCommentList(content, userEntity, articleEntity, page, size, descFilters, ascFilters);
+        return commentEntities;
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        List<CommentEntity> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @JsonView(value = CommentEntity.BaseCommentView.class)
+    @ResponseStatus(value = HttpStatus.CREATED)
+    public CommentEntity saveEntity(
             @RequestBody CommentEntity commentEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -91,13 +150,13 @@ public class CommentControllerImpl implements CommentController {
         URI locationUrl = URI.create(String.format("http://%s:%d/comment?id=%d",
                 request.getLocalName(), request.getLocalPort(), opeartionResult.getCommentId()));
         httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<CommentEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return opeartionResult;
     }
 
     @Override
-    @RequestMapping(value = "/comment", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<CommentEntity> updateEntity(
+    public CommentEntity updateEntity(
             @RequestBody CommentEntity commentEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -112,13 +171,13 @@ public class CommentControllerImpl implements CommentController {
         tmp.setAccessTime(now.toEpochMilli());
         tmp.setModifyTime(now.toEpochMilli());
         commentService.updateComment(tmp);
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
+        return tmp;
     }
 
     @Override
-    @RequestMapping(value = "/comment", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    public ResponseEntity<BlogException> deleteEntityById(
-            @RequestParam(name = "id") Integer id,
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
+    public void deleteEntityById(
+            @PathVariable(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
         CommentEntity tmp = commentService.findCommentById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -127,155 +186,10 @@ public class CommentControllerImpl implements CommentController {
         }
         try {
             commentService.removeComment(tmp);
-            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_COMMENT_SUCCESS).build(), HttpStatus.OK);
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_COMMENT_SUCCESS).build();
         } catch (Exception e) {
             throw new BlogException.Builder(BlogExceptionEnum.DELETE_COMMENT_FAILED, "id: " + id).build();
         }
     }
 
-    @Override
-    @RequestMapping(value = "/comment", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<CommentEntity> queryEntityById(
-            @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException {
-        CommentEntity tmp = commentService.findCommentById(id);
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
-        return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
-    }
-
-    @Override
-    @RequestMapping(value = "/comments", method = {RequestMethod.POST, RequestMethod.OPTIONS})
-    @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<List<CommentEntity>> saveEntities(
-            @RequestBody List<CommentEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<CommentEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (CommentEntity tmp : list) {
-                ResponseEntity<CommentEntity> res = saveEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/comments", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
-    @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<List<CommentEntity>> updateEntities(
-            @RequestBody List<CommentEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<CommentEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (CommentEntity tmp : list) {
-                ResponseEntity<CommentEntity> res = updateEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/comments", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<List<CommentEntity>> deleteEntitiesById(
-            @RequestParam(name = "ids") List<Integer> ids,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<CommentEntity> operateFailed = new ArrayList<>(ids.size());
-        try {
-            for (Integer id : ids) {
-                try {
-                    ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
-                        operateFailed.add(commentService.findCommentById(id));
-                    }
-                } catch (Exception e) {
-                    continue;
-                }
-            }
-            return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateFailed.size() == 0) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.BAD_REQUEST);
-            } else if (operateFailed.size() > 0 && operateFailed.size() < ids.size()) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateFailed, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/comments", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = CommentEntity.BaseCommentView.class)
-    public ResponseEntity<List<CommentEntity>> queryEntities(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        String content = params.getOrDefault(Constants.CONTENT, Constants.DEFAULT_STRING).toString();
-        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
-        String articleId = params.getOrDefault(Constants.ARTICLE_ID, Constants.DEFAULT_STRING).toString();
-        UserEntity userEntity = null;
-        ArticleEntity articleEntity = null;
-        if (!StringUtils.isEmpty(userId)) {
-            userEntity = userService.findUserById(Integer.valueOf(userId));
-        }
-        if (!StringUtils.isEmpty(articleId)) {
-            articleEntity = articleService.findArticleById(Integer.valueOf(articleId));
-        }
-        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
-        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
-        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        List<CommentEntity> commentEntities = commentService.findCommentList(content, userEntity, articleEntity, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<CommentEntity>>(commentEntities, HttpStatus.OK);
-    }
-
-    @Override
-    @RequestMapping(value = "/comments", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
-    public ResponseEntity queryEntitiesSize(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        if (!params.containsKey(Constants.SIZE)) {
-            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
-        }
-        if (!params.containsKey(Constants.PAGE)) {
-            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
-        }
-        ResponseEntity<List<CommentEntity>> responseEntity = queryEntities(params, operator);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentLength(responseEntity.getBody().size());
-        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
-    }
 }

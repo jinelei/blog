@@ -34,6 +34,7 @@ import java.util.Map;
 @RestController
 @ResponseBody
 @RequestMapping(
+        value = "/tags",
         consumes = {
                 MediaType.APPLICATION_JSON_VALUE,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
@@ -60,9 +61,64 @@ public class TagControllerImpl implements TagController {
     UserService userService;
 
     @Override
-    @RequestMapping(value = "/tag", method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.GET, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<TagEntity> saveEntity(
+    public TagEntity queryEntityById(
+            @PathVariable(name = "id") Integer id,
+            @CurrentUser UserEntity operator) throws BlogException {
+        TagEntity tmp = tagService.findTagById(id);
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
+        }
+        return tmp;
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.GET, RequestMethod.OPTIONS})
+    @JsonView(value = TagEntity.BaseTagView.class)
+    public List<TagEntity> queryEntities(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        String name = params.getOrDefault(Constants.NAME, Constants.DEFAULT_STRING).toString();
+        String summary = params.getOrDefault(Constants.SUMMARY, Constants.DEFAULT_STRING).toString();
+        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
+        UserEntity userEntity = null;
+        if (!StringUtils.isEmpty(userId)) {
+            userEntity = userService.findUserById(Integer.valueOf(userId));
+        }
+        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
+        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
+        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
+                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
+        List<TagEntity> tagEntities = tagService.findTagList(name, summary, userEntity, page, size, descFilters, ascFilters);
+        return tagEntities;
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
+    public ResponseEntity queryEntitiesSize(
+            @RequestParam Map<String, Object> params,
+            @CurrentUser UserEntity operator) throws BlogException {
+        if (!params.containsKey(Constants.SIZE)) {
+            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
+        }
+        if (!params.containsKey(Constants.PAGE)) {
+            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
+        }
+        List<TagEntity> responseEntity = queryEntities(params, operator);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentLength(responseEntity.size());
+        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
+    }
+
+    @Override
+    @RequestMapping(method = {RequestMethod.POST, RequestMethod.OPTIONS})
+    @JsonView(value = TagEntity.BaseTagView.class)
+    @ResponseStatus(value = HttpStatus.CREATED)
+    public TagEntity saveEntity(
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -76,17 +132,13 @@ public class TagControllerImpl implements TagController {
         }
         TagEntity opeartionResult = null;
         opeartionResult = tagService.addTag(tagEntity);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        URI locationUrl = URI.create(String.format("http://%s:%d/tag?id=%d",
-                request.getLocalName(), request.getLocalPort(), opeartionResult.getTagId()));
-        httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<TagEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return opeartionResult;
     }
 
     @Override
-    @RequestMapping(value = "/tag", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<TagEntity> updateEntity(
+    public TagEntity updateEntity(
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -104,13 +156,13 @@ public class TagControllerImpl implements TagController {
         tmp.setAccessTime(now.toEpochMilli());
         tmp.setModifyTime(now.toEpochMilli());
         tagService.updateTag(tmp);
-        return new ResponseEntity<>(tmp, HttpStatus.OK);
+        return tmp;
     }
 
     @Override
-    @RequestMapping(value = "/tag", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    public ResponseEntity<BlogException> deleteEntityById(
-            @RequestParam(name = "id") Integer id,
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
+    public void deleteEntityById(
+            @PathVariable(name = "id") Integer id,
             @CurrentUser UserEntity operator) throws BlogException {
         TagEntity tmp = tagService.findTagById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -119,151 +171,10 @@ public class TagControllerImpl implements TagController {
         }
         try {
             tagService.removeTag(tmp);
-            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_TAG_SUCCESS).build(), HttpStatus.OK);
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_TAG_SUCCESS).build();
         } catch (Exception e) {
             throw new BlogException.Builder(BlogExceptionEnum.DELETE_TAG_FAILED).build();
         }
     }
 
-    @Override
-    @RequestMapping(value = "/tag", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<TagEntity> queryEntityById(
-            @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException {
-        TagEntity tmp = tagService.findTagById(id);
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
-        return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
-    }
-
-    @Override
-    @RequestMapping(value = "/tags", method = {RequestMethod.POST, RequestMethod.OPTIONS})
-    @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<List<TagEntity>> saveEntities(
-            @RequestBody List<TagEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<TagEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (TagEntity tmp : list) {
-                ResponseEntity<TagEntity> res = saveEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/tags", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
-    @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<List<TagEntity>> updateEntities(
-            @RequestBody List<TagEntity> list,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<TagEntity> operateSuccess = new ArrayList<>(list.size());
-        try {
-            for (TagEntity tmp : list) {
-                ResponseEntity<TagEntity> res = updateEntity(tmp, operator);
-                if (HttpStatus.OK.equals(res.getStatusCode())) {
-                    operateSuccess.add(tmp);
-                }
-            }
-            return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateSuccess.size() == 0) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.BAD_REQUEST);
-            } else if (operateSuccess.size() > 0 && operateSuccess.size() < list.size()) {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateSuccess, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/tags", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<List<TagEntity>> deleteEntitiesById(
-            @RequestParam(name = "ids") List<Integer> ids,
-            @CurrentUser UserEntity operator) throws BlogException {
-        List<TagEntity> operateFailed = new ArrayList<>(ids.size());
-        try {
-            for (Integer id : ids) {
-                try {
-                    ResponseEntity<BlogException> res = deleteEntityById(id, operator);
-                    if (HttpStatus.BAD_REQUEST.equals(res.getStatusCode())) {
-                        operateFailed.add(tagService.findTagById(id));
-                    }
-                } catch (Exception e) {
-                    continue;
-                }
-            }
-            return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-        } catch (Exception e) {
-            LOGGER.error(e.toString());
-        } finally {
-            if (operateFailed.size() == 0) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.BAD_REQUEST);
-            } else if (operateFailed.size() > 0 && operateFailed.size() < ids.size()) {
-                return new ResponseEntity<>(operateFailed, HttpStatus.PARTIAL_CONTENT);
-            } else {
-                return new ResponseEntity<>(operateFailed, HttpStatus.OK);
-            }
-        }
-    }
-
-    @Override
-    @RequestMapping(value = "/tags", method = {RequestMethod.GET, RequestMethod.OPTIONS})
-    @JsonView(value = TagEntity.BaseTagView.class)
-    public ResponseEntity<List<TagEntity>> queryEntities(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        String name = params.getOrDefault(Constants.NAME, Constants.DEFAULT_STRING).toString();
-        String summary = params.getOrDefault(Constants.SUMMARY, Constants.DEFAULT_STRING).toString();
-        String userId = params.getOrDefault(Constants.USER_ID, Constants.DEFAULT_STRING).toString();
-        UserEntity userEntity = null;
-        if (!StringUtils.isEmpty(userId)) {
-            userEntity = userService.findUserById(Integer.valueOf(userId));
-        }
-        Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
-        Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
-        String[] descFilters = StringUtils.isEmpty(params.getOrDefault(Constants.DESC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.DESC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        String[] ascFilters = StringUtils.isEmpty(params.getOrDefault(Constants.ASC_FILTERS, Constants.DEFAULT_STRING))
-                ? null : params.get(Constants.ASC_FILTERS).toString().split(Constants.COMMA_SPLIT);
-        List<TagEntity> tagEntities = tagService.findTagList(name, summary, userEntity, page, size, descFilters, ascFilters);
-        return new ResponseEntity<List<TagEntity>>(tagEntities, HttpStatus.OK);
-    }
-
-    @Override
-    @RequestMapping(value = "/tags", method = {RequestMethod.HEAD, RequestMethod.OPTIONS})
-    public ResponseEntity queryEntitiesSize(
-            @RequestParam Map<String, Object> params,
-            @CurrentUser UserEntity operator) throws BlogException {
-        if (!params.containsKey(Constants.SIZE)) {
-            params.put(Constants.SIZE, Constants.INVAILD_VALUE);
-        }
-        if (!params.containsKey(Constants.PAGE)) {
-            params.put(Constants.PAGE, Constants.INVAILD_VALUE);
-        }
-        ResponseEntity<List<TagEntity>> responseEntity = queryEntities(params, operator);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentLength(responseEntity.getBody().size());
-        return new ResponseEntity<>(null, httpHeaders, HttpStatus.OK);
-    }
 }
