@@ -7,6 +7,7 @@ import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.UserRepository;
 import cn.jinelei.rainbow.blog.service.UserService;
+import cn.jinelei.rainbow.blog.utils.CheckUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,36 +38,21 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = {BlogException.class, Exception.class})
     public UserEntity addUser(UserEntity userEntity) throws BlogException {
-        if (StringUtils.isEmpty(userEntity.getUsername())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "username is empty").build();
-        }
+        // 检查用户名
         if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(Constants.USERNAME).as(String.class), userEntity.getUsername())
-
         ).isPresent()) {
             throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "username already exist: " + userEntity.getUsername()).build();
         }
-        if (StringUtils.isEmpty(userEntity.getPassword())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "password is empty").build();
-        }
-        if (StringUtils.isEmpty(userEntity.getPhone())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "phone is empty").build();
-        }
-        if (userEntity.getPhone().length() < 8) {
-            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "password is not strong").build();
-        }
+        // 检查手机号
         if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone())
-
         ).isPresent()) {
             throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
         }
-        if (StringUtils.isEmpty(userEntity.getEmail())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "email is empty").build();
-        }
+        // 检查邮箱
         if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(Constants.EMAIL).as(String.class), userEntity.getEmail())
-
         ).isPresent()) {
             throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
         }
@@ -92,36 +78,13 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = {BlogException.class, Exception.class})
     public UserEntity updateUser(UserEntity userEntity) throws BlogException {
-        if (StringUtils.isEmpty(userEntity.getUsername())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "username is empty").build();
-        }
         if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
                 criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(Constants.USERNAME).as(String.class), userEntity.getUsername()),
-                        criteriaBuilder.notEqual(root.get(ConstantsCamelCase.USER_ID).as(Integer.class), userEntity.getUserId())
+                        criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone()),
+                        criteriaBuilder.notEqual(root.get("user_id").as(Integer.class), userEntity.getUserId())
                 )
         ).isPresent()) {
-            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "username already exist: " + userEntity.getUsername()).build();
-        }
-        if (StringUtils.isEmpty(userEntity.getPassword())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "password is empty").build();
-        }
-        if (StringUtils.isEmpty(userEntity.getPhone())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "phone is empty").build();
-        }
-        if (userEntity.getPhone().length() < 8) {
-            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "password is not strong").build();
-        }
-        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
-                criteriaBuilder.and(
-                        criteriaBuilder.notEqual(root.get(ConstantsCamelCase.USER_ID).as(Integer.class), userEntity.getUserId()),
-                        criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone())
-                )
-        ).isPresent()) {
-            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
-        }
-        if (StringUtils.isEmpty(userEntity.getEmail())) {
-            throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "email is empty").build();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
         }
         if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
                 criteriaBuilder.and(
@@ -129,13 +92,13 @@ public class UserServiceImpl implements UserService {
                         criteriaBuilder.equal(root.get(Constants.EMAIL).as(String.class), userEntity.getEmail())
                 )
         ).isPresent()) {
-            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
         }
-        UserEntity saveResult = userRepository.save(userEntity);
-        if (!saveResult.equalsWithId(userEntity)) {
+        try {
+            return userRepository.save(userEntity);
+        } catch (Exception e) {
             throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, userEntity.toString()).build();
         }
-        return saveResult;
     }
 
     @Override

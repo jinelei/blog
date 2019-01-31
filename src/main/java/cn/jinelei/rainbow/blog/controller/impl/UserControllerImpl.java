@@ -116,8 +116,33 @@ public class UserControllerImpl implements UserController {
     public UserEntity saveEntity(
             @RequestBody UserEntity userEntity,
             @CurrentUser(require = false) UserEntity operator) throws BlogException {
+        // 检查用户名
+        if (StringUtils.isEmpty(userEntity.getUsername())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "username is empty").build();
+        }
+        // 检查用户密码
+        if (StringUtils.isEmpty(userEntity.getPassword())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "password is empty").build();
+        }
+        if (userEntity.getPassword().length() < 8) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "password is not strong").build();
+        }
+        // 检查手机号
+        if (StringUtils.isEmpty(userEntity.getPhone())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "phone is empty").build();
+        }
+        if (!CheckUtils.checkPhone(userEntity.getPhone())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "phone is invalid: " + userEntity.getPhone()).build();
+        }
+        // 检查邮箱
+        if (StringUtils.isEmpty(userEntity.getEmail())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is empty").build();
+        }
+        if (!CheckUtils.checkEmail(userEntity.getEmail())) {
+            throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is invalid: " + userEntity.getEmail()).build();
+        }
         UserEntity opeartionResult = userService.addUser(userEntity);
-        return operator;
+        return opeartionResult;
     }
 
     @Override
@@ -132,12 +157,21 @@ public class UserControllerImpl implements UserController {
             tmp.setNickname(userEntity.getNickname());
         }
         if (!StringUtils.isEmpty(userEntity.getPhone())) {
+            if (!CheckUtils.checkPhone(userEntity.getPhone())) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "phone is invalid: " + userEntity.getPhone()).build();
+            }
             tmp.setPhone(userEntity.getPhone());
         }
         if (!StringUtils.isEmpty(userEntity.getEmail())) {
+            if (!CheckUtils.checkEmail(userEntity.getEmail())) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is invalid: " + userEntity.getEmail()).build();
+            }
             tmp.setEmail(userEntity.getEmail());
         }
         if (!StringUtils.isEmpty(userEntity.getPassword())) {
+            if (userEntity.getPassword().length() < 8) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "password is not strong").build();
+            }
             tmp.setPassword(userEntity.getPassword());
         }
         if (!StringUtils.isEmpty(userEntity.getProvince())) {

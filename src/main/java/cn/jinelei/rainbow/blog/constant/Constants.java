@@ -81,4 +81,5 @@ public class Constants {
     public static final String CATEGORY_ERROR_STR = "Category Error";
     public static final String COMMENT_ERROR_STR = "Comment Error";
     public static final String BASE_ERROR_STR = "Base Error";
+    public static final String CHECK_FAILED_STR = "Check Failed";
 }
