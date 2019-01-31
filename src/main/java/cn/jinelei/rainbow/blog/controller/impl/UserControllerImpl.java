@@ -6,6 +6,7 @@ import cn.jinelei.rainbow.blog.controller.UserController;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.slf4j.Logger;
@@ -16,12 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,11 +62,7 @@ public class UserControllerImpl implements UserController {
             @RequestBody UserEntity userEntity,
             @CurrentUser(require = false) UserEntity operator) throws BlogException {
         UserEntity opeartionResult = userService.addUser(userEntity);
-        HttpHeaders httpHeaders = new HttpHeaders();
-        URI locationUrl = URI.create(String.format("http://%s:%d/user?id=%d",
-                request.getLocalName(), request.getLocalPort(), opeartionResult.getUserId()));
-        httpHeaders.setLocation(locationUrl);
-        return new ResponseEntity<UserEntity>(opeartionResult, httpHeaders, HttpStatus.CREATED);
+        return new ResponseEntity<UserEntity>(opeartionResult, HttpStatus.CREATED);
     }
 
     @Override
@@ -76,7 +73,7 @@ public class UserControllerImpl implements UserController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(userEntity.getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         UserEntity tmp = userService.findUserById(userEntity.getUserId());
         if (!StringUtils.isEmpty(userEntity.getNickname())) {
@@ -106,17 +103,17 @@ public class UserControllerImpl implements UserController {
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public ResponseEntity<BlogException> deleteEntityById(
             @RequestParam(name = "id") Integer id,
-            @CurrentUser UserEntity operator) throws BlogException.DeleteUserSuccess, BlogException {
+            @CurrentUser UserEntity operator) throws BlogException {
         UserEntity tmp = userService.findUserById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         try {
             userService.removeUser(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteUserSuccess(), HttpStatus.OK);
+            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_USER_SUCCESS, "id: " + id).build(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteUserFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_USER_FAILED, "id: " + id).build();
         }
     }
 
@@ -129,7 +126,7 @@ public class UserControllerImpl implements UserController {
         UserEntity tmp = userService.findUserById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         return new ResponseEntity<>(tmp, HttpStatus.OK);
     }

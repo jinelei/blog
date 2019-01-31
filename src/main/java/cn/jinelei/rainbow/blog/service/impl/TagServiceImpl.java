@@ -3,6 +3,7 @@ package cn.jinelei.rainbow.blog.service.impl;
 import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.TagRepository;
 import cn.jinelei.rainbow.blog.service.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,18 +57,18 @@ public class TagServiceImpl implements TagService {
                 }
             });
             if (list.size() > 0) {
-                throw new BlogException.TagAlreadyExist();
+                throw new BlogException.Builder(BlogExceptionEnum.TAG_ALREADY_EXIST, tagEntity.toString()).build();
             }
             TagEntity saveResult = tagRepository.save(tagEntity);
             if (!saveResult.equalsWithoutId(tagEntity)) {
-                throw new BlogException.InsertDataError();
+                throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, tagEntity.toString()).build();
             }
             return saveResult;
         } catch (Exception e) {
             if (e instanceof BlogException) {
                 throw e;
             }
-            throw new BlogException.InsertDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, tagEntity.toString()).build();
         }
     }
 
@@ -82,7 +83,7 @@ public class TagServiceImpl implements TagService {
     public TagEntity updateTag(TagEntity tagEntity) throws BlogException {
         TagEntity saveResult = tagRepository.save(tagEntity);
         if (!saveResult.equals(tagEntity)) {
-            throw new BlogException.UpdateDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, tagEntity.toString()).build();
         }
         return saveResult;
     }
@@ -94,7 +95,7 @@ public class TagServiceImpl implements TagService {
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new BlogException.TagNotFound();
+            throw new BlogException.Builder(BlogExceptionEnum.TAG_NOT_FOUND, "id: " + id).build();
         }
     }
 

@@ -3,6 +3,7 @@ package cn.jinelei.rainbow.blog.service.impl;
 import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.UserRepository;
 import cn.jinelei.rainbow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +38,7 @@ public class UserServiceImpl implements UserService {
     public UserEntity addUser(UserEntity userEntity) throws BlogException {
         UserEntity saveResult = userRepository.save(userEntity);
         if (!saveResult.equalsWithId(userEntity)) {
-            throw new BlogException.InsertDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, userEntity.toString()).build();
         }
         return saveResult;
     }
@@ -53,7 +54,7 @@ public class UserServiceImpl implements UserService {
     public UserEntity updateUser(UserEntity userEntity) throws BlogException {
         UserEntity saveResult = userRepository.save(userEntity);
         if (!saveResult.equalsWithId(userEntity)) {
-            throw new BlogException.UpdateDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, userEntity.toString()).build();
         }
         return saveResult;
     }
@@ -65,7 +66,7 @@ public class UserServiceImpl implements UserService {
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new BlogException.UserNotFound();
+            throw new BlogException.Builder(BlogExceptionEnum.DATA_NOT_FOUND, "id: " + id).build();
         }
     }
 
@@ -75,9 +76,9 @@ public class UserServiceImpl implements UserService {
         if (userEntities.size() == 1) {
             return userEntities.get(0);
         } else if (userEntities.size() > 1) {
-            throw new BlogException.UsernameNotUnique();
+            throw new BlogException.Builder(BlogExceptionEnum.UNKNOWN_ERROR, "user not unique").build();
         } else {
-            throw new BlogException.UsernameOrPasswordInvalid();
+            throw new BlogException.Builder(BlogExceptionEnum.USERNAME_OR_PASSWORD_WRONG, Constants.USERNAME_OR_PASSWORD_WRONG_STR).build();
         }
     }
 

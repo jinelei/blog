@@ -5,6 +5,7 @@ import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.entity.TokenEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,7 @@ public class CurrentUserArgumentResolver extends HandlerInterceptorAdapter imple
             return userService.findUserById(Integer.valueOf(currentUserId.toString()));
         } else {
             if (Boolean.getBoolean(requiredUser.toString())) {
-                throw new BlogException.UserNotLogin();
+                throw new BlogException.Builder(BlogExceptionEnum.USER_NOT_LOGIN, "id: " + currentUserId).build();
             } else {
                 return null;
             }

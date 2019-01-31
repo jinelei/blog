@@ -9,6 +9,7 @@ import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.CategoryService;
 import cn.jinelei.rainbow.blog.service.UserService;
@@ -72,7 +73,7 @@ public class CategoryControllerImpl implements CategoryController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(categoryEntity.getCategoryCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         if (categoryEntity.getCategoryCreator() == null) {
             categoryEntity.setCategoryCreator(operator);
@@ -96,7 +97,7 @@ public class CategoryControllerImpl implements CategoryController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(categoryEntity.getCategoryCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         CategoryEntity tmp = categoryService.findCategoryById(categoryEntity.getCategoryId());
         if (!StringUtils.isEmpty(categoryEntity.getName())) {
@@ -120,13 +121,13 @@ public class CategoryControllerImpl implements CategoryController {
         CategoryEntity tmp = categoryService.findCategoryById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getCategoryCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         try {
             categoryService.removeCategory(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteCategorySuccess(), HttpStatus.OK);
+            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_CATEGORY_SUCCESS).build(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteCategoryFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_CATEGORY_FAILED, "id: " + id).build();
         }
     }
 
@@ -139,7 +140,7 @@ public class CategoryControllerImpl implements CategoryController {
         CategoryEntity tmp = categoryService.findCategoryById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getCategoryCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }

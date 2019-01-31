@@ -9,6 +9,7 @@ import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.CommentService;
 import cn.jinelei.rainbow.blog.service.UserService;
@@ -72,7 +73,7 @@ public class CommentControllerImpl implements CommentController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(commentEntity.getCommentator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         if (commentEntity.getCommentator() == null) {
             commentEntity.setCommentator(operator);
@@ -101,7 +102,7 @@ public class CommentControllerImpl implements CommentController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(commentEntity.getCommentator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         CommentEntity tmp = commentService.findCommentById(commentEntity.getCommentId());
         if (!StringUtils.isEmpty(commentEntity.getContent())) {
@@ -122,13 +123,13 @@ public class CommentControllerImpl implements CommentController {
         CommentEntity tmp = commentService.findCommentById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         try {
             commentService.removeComment(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteCommentSuccess(), HttpStatus.OK);
+            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_COMMENT_SUCCESS).build(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteCommentFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_COMMENT_FAILED, "id: " + id).build();
         }
     }
 
@@ -141,7 +142,7 @@ public class CommentControllerImpl implements CommentController {
         CommentEntity tmp = commentService.findCommentById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }

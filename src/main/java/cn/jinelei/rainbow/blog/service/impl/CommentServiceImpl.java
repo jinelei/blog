@@ -6,6 +6,7 @@ import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.CommentEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.CommentRepository;
 import cn.jinelei.rainbow.blog.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,14 +45,14 @@ public class CommentServiceImpl implements CommentService {
         try {
             CommentEntity saveResult = commentRepository.save(commentEntity);
             if (!saveResult.equalsWithoutId(commentEntity)) {
-                throw new BlogException.InsertDataError();
+                throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, commentEntity.toString()).build();
             }
             return saveResult;
         } catch (Exception e) {
             if (e instanceof BlogException) {
                 throw e;
             }
-            throw new BlogException.InsertDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, commentEntity.toString()).build();
         }
     }
 
@@ -66,7 +67,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentEntity updateComment(CommentEntity commentEntity) throws BlogException {
         CommentEntity saveResult = commentRepository.save(commentEntity);
         if (!saveResult.equals(commentEntity)) {
-            throw new BlogException.UpdateDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, commentEntity.toString()).build();
         }
         return saveResult;
     }
@@ -78,7 +79,7 @@ public class CommentServiceImpl implements CommentService {
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new BlogException.CommentNotFound();
+            throw new BlogException.Builder(BlogExceptionEnum.COMMENT_NOT_FOUND, "id: " + id).build();
         }
     }
 

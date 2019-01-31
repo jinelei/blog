@@ -3,6 +3,7 @@ package cn.jinelei.rainbow.blog.service.impl;
 import cn.jinelei.rainbow.blog.entity.TokenEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.TokenRepository;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
@@ -56,14 +57,14 @@ public class TokenServiceImpl implements TokenService {
             Instant effectiveDate = Instant.ofEpochMilli(tokenEntity.getEffectiveDate());
             Instant now = Instant.now();
             if (now.isBefore(effectiveDate)) {
-                throw new BlogException.TokenNotEffective();
+                throw new BlogException.Builder(BlogExceptionEnum.TOKEN_NOT_EFFECTIVE, "effective time: " + tokenEntity.getEffectiveDate()).build();
             } else if (now.isAfter(expriyDate)) {
-                throw new BlogException.TokenIsExpired();
+                throw new BlogException.Builder(BlogExceptionEnum.TOKEN_IS_EXPIRED, "expired time: " + tokenEntity.getExpiryDate()).build();
             } else {
                 return tokenEntity;
             }
         } else {
-            throw new BlogException.UserNotLogin();
+            throw new BlogException.Builder(BlogExceptionEnum.USER_NOT_LOGIN, "token: " + token).build();
         }
     }
 
@@ -76,14 +77,14 @@ public class TokenServiceImpl implements TokenService {
             Instant effectiveDate = Instant.ofEpochMilli(tokenEntity.getEffectiveDate());
             Instant now = Instant.now();
             if (now.isBefore(effectiveDate)) {
-                throw new BlogException.TokenNotEffective();
+                throw new BlogException.Builder(BlogExceptionEnum.TOKEN_NOT_EFFECTIVE, "effective time: " + tokenEntity.getEffectiveDate()).build();
             } else if (now.isAfter(expriyDate)) {
-                throw new BlogException.TokenIsExpired();
+                throw new BlogException.Builder(BlogExceptionEnum.TOKEN_IS_EXPIRED, "expired time: " + tokenEntity.getExpiryDate()).build();
             } else {
                 tokenRepository.delete(queryResult.get());
             }
         } else {
-            throw new BlogException.UserNotLogin();
+            throw new BlogException.Builder(BlogExceptionEnum.USER_NOT_LOGIN, "token: " + token).build();
         }
     }
 }

@@ -5,6 +5,7 @@ import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.ArticleRepository;
 import cn.jinelei.rainbow.blog.service.ArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,18 +59,18 @@ public class ArticleServiceImpl implements ArticleService {
                 }
             });
             if (list.size() > 0) {
-                throw new BlogException.ArticleAlreadyExist();
+                throw new BlogException.Builder(BlogExceptionEnum.ARTICLE_ALREADY_EXIST, articleEntity.toString()).build();
             }
             ArticleEntity saveResult = articleRepository.save(articleEntity);
             if (!saveResult.equalsWithoutId(articleEntity)) {
-                throw new BlogException.InsertDataError();
+                throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, articleEntity.toString()).build();
             }
             return saveResult;
         } catch (Exception e) {
             if (e instanceof BlogException) {
                 throw e;
             }
-            throw new BlogException.InsertDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, articleEntity.toString()).build();
         }
     }
 
@@ -84,7 +85,7 @@ public class ArticleServiceImpl implements ArticleService {
     public ArticleEntity updateArticle(ArticleEntity articleEntity) throws BlogException {
         ArticleEntity saveResult = articleRepository.save(articleEntity);
         if (!saveResult.equals(articleEntity)) {
-            throw new BlogException.UpdateDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, articleEntity.toString()).build();
         }
         return saveResult;
     }
@@ -96,7 +97,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new BlogException.ArticleNotFound();
+            throw new BlogException.Builder(BlogExceptionEnum.ARTICLE_NOT_FOUND, "id: " + id).build();
         }
     }
 

@@ -5,6 +5,7 @@ import cn.jinelei.rainbow.blog.entity.ArticleEntity;
 import cn.jinelei.rainbow.blog.entity.CategoryEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.CategoryRepository;
 import cn.jinelei.rainbow.blog.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,18 +59,18 @@ public class CategoryServiceImpl implements CategoryService {
                 }
             });
             if (list.size() > 0) {
-                throw new BlogException.CategoryAlreadyExist();
+                throw new BlogException.Builder(BlogExceptionEnum.CATEGORY_ALREADY_EXIST, categoryEntity.toString()).build();
             }
             CategoryEntity saveResult = categoryRepository.save(categoryEntity);
             if (!saveResult.equalsWithoutId(categoryEntity)) {
-                throw new BlogException.InsertDataError();
+                throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, categoryEntity.toString()).build();
             }
             return saveResult;
         } catch (Exception e) {
             if (e instanceof BlogException) {
                 throw e;
             }
-            throw new BlogException.InsertDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.INSERT_DATA_FAILED, categoryEntity.toString()).build();
         }
     }
 
@@ -84,7 +85,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryEntity updateCategory(CategoryEntity categoryEntity) throws BlogException {
         CategoryEntity saveResult = categoryRepository.save(categoryEntity);
         if (!saveResult.equals(categoryEntity)) {
-            throw new BlogException.UpdateDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, categoryEntity.toString()).build();
         }
         return saveResult;
     }
@@ -96,7 +97,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (findResult.isPresent()) {
             return findResult.get();
         } else {
-            throw new BlogException.CategoryNotFound();
+            throw new BlogException.Builder(BlogExceptionEnum.CATEGORY_NOT_FOUND, "id: " + id).build();
         }
     }
 

@@ -4,6 +4,7 @@ import cn.jinelei.rainbow.blog.controller.TokenController;
 import cn.jinelei.rainbow.blog.entity.TokenEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.TokenService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -37,7 +38,7 @@ public class TokenControllerImpl implements TokenController {
             @RequestParam String username,
             @RequestParam String password) throws BlogException {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
-            throw new BlogException.UserLoginFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.USER_LOGIN_FAILED).build();
         }
         UserEntity user = userService.validUserByUsernameAndPassword(username, password);
         TokenEntity tokenEntity = tokenService.createToken(user);
@@ -53,14 +54,14 @@ public class TokenControllerImpl implements TokenController {
         if (!StringUtils.isEmpty(token)) {
             if (token.startsWith("Bearer ")) {
                 tokenService.deleteToken(token.replace("Bearer ", ""));
-                return new ResponseEntity<>(new BlogException.UserLogoutSuccess(), HttpStatus.OK);
+                return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build(), HttpStatus.OK);
             } else {
                 tokenService.deleteToken(token);
-                return new ResponseEntity<>(new BlogException.UserLogoutSuccess(), HttpStatus.OK);
+                return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build(), HttpStatus.OK);
             }
 
         } else {
-            return new ResponseEntity<>(new BlogException.UserLogoutFailed(), HttpStatus.BAD_REQUEST);
+            throw new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_FAILED, "token is empty").build();
         }
     }
 

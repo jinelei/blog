@@ -3,222 +3,221 @@ package cn.jinelei.rainbow.blog.exception;
 import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.lang.reflect.Field;
+import java.time.Instant;
+
+import static cn.jinelei.rainbow.blog.constant.Constants.PARAM_PLACEHOLDER;
 
 /**
  * @author zhenlei
  */
 @JsonIgnoreProperties(value = {"cause", "stackTrace", "exceptionEnum", "suppressed", "localizedMessage"})
-public class BlogException extends Exception {
-    BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UNKNOWN_ERROR;
+public class BlogException extends RuntimeException {
+    protected Integer status;
+    protected String reason;
+    protected Integer code;
+    protected String message;
+    protected Instant timestamp;
 
-    int code;
-    String message;
-    String describe;
-
-    public int getCode() {
-        try {
-            Field field = this.getClass().getDeclaredField("blogExceptionEnum");
-            field.setAccessible(true);
-            BlogExceptionEnum e = ((BlogExceptionEnum) field.get(this));
-            return e.getCode();
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return this.blogExceptionEnum.getCode();
-        }
+    private BlogException(Integer status, String reason, Integer code, String message) {
+        this.status = status;
+        this.reason = reason;
+        this.code = code;
+        this.message = message;
+        this.timestamp = Instant.now();
     }
 
-    public String getDescribe() {
-        return describe;
+    @Override
+    public String toString() {
+        return "BusinessException{" +
+                "status=" + status +
+                ", reason='" + reason + '\'' +
+                ", code=" + code +
+                ", message='" + message + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public Integer getCode() {
+        return code;
+    }
+
+    public void setCode(Integer code) {
+        this.code = code;
     }
 
     @Override
     public String getMessage() {
-        try {
-            Field field = this.getClass().getDeclaredField("blogExceptionEnum");
-            field.setAccessible(true);
-            BlogExceptionEnum e = ((BlogExceptionEnum) field.get(this));
-            return e.getMessage();
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return this.blogExceptionEnum.getMessage();
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public static class ArticleException extends BlogException {
+        public ArticleException(Integer status, String reason, Integer code, String message) {
+            super(status, reason, code, message);
         }
     }
 
-    public BlogExceptionEnum getExceptionEnum() {
-        try {
-            Field field = this.getClass().getDeclaredField("blogExceptionEnum");
-            field.setAccessible(true);
-            return ((BlogExceptionEnum) field.get(this));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return this.blogExceptionEnum;
+    public static class UserException extends BlogException {
+        public UserException(Integer status, String reason, Integer code, String message) {
+            super(status, reason, code, message);
         }
     }
 
-    public BlogException(String describe) {
-        super();
-        this.describe = describe;
+    public static class TagException extends BlogException {
+        public TagException(Integer status, String reason, Integer code, String message) {
+            super(status, reason, code, message);
+        }
     }
 
-    public BlogException() {
+    public static class CategoryException extends BlogException {
+        public CategoryException(Integer status, String reason, Integer code, String message) {
+            super(status, reason, code, message);
+        }
     }
 
-    public static class InsertDataError extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.INSERT_DATA_ERROR;
+    public static class CommentException extends BlogException {
+        public CommentException(Integer status, String reason, Integer code, String message) {
+            super(status, reason, code, message);
+        }
     }
 
-    public static class UpdateDataError extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UPDATE_DATA_ERROR;
-    }
+    public static class Builder {
+        private Integer status;
+        private String reason;
+        private Integer code;
+        private String message;
+        private Instant timestamp;
 
-    public static class DeleteDataError extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_DATA_ERROR;
-    }
 
-    public static class QueryDataError extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.QUERY_DATA_ERROR;
-    }
+        public Builder(BlogExceptionEnum exceptionEnum) {
+            this.status = exceptionEnum.getStatus();
+            this.reason = exceptionEnum.getReason();
+            this.code = exceptionEnum.getCode();
+            this.message = exceptionEnum.getReason();
+        }
 
-    public static class UserNotLogin extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_NOT_LOGIN;
-    }
+        public Builder(BlogExceptionEnum exceptionEnum, String messages) {
+            this.status = exceptionEnum.getStatus();
+            this.reason = exceptionEnum.getReason();
+            this.code = exceptionEnum.getCode();
+            this.message = messages;
+        }
 
-    public static class EmailAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.EMAIL_ALREADY_EXIST;
-    }
+        public Builder(BlogExceptionEnum exceptionEnum, Object[] messages) {
+            this.status = exceptionEnum.getStatus();
+            this.reason = exceptionEnum.getReason();
+            this.code = exceptionEnum.getCode();
+            String[] res = exceptionEnum.getMessage().split(PARAM_PLACEHOLDER);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < res.length; i++) {
+                sb.append(res[i]);
+                if (messages[i] != null) {
+                    sb.append(String.valueOf(messages[i]));
+                }
+            }
+            this.message = sb.toString();
+        }
 
-    public static class PhoneAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.PHONE_ALREADY_EXIST;
-    }
+        public Builder() {
+        }
 
-    public static class UsernameNotUnique extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USERNAME_NOT_UNIQUE;
-    }
+        public Builder setExceptionEnum(BlogExceptionEnum exceptionEnum, Object[] messages) {
+            this.status = exceptionEnum.getStatus();
+            this.reason = exceptionEnum.getReason();
+            this.code = exceptionEnum.getCode();
+            String[] res = exceptionEnum.getMessage().split(PARAM_PLACEHOLDER);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < res.length; i++) {
+                sb.append(res[i]);
+                if (messages[i] != null) {
+                    sb.append(String.valueOf(messages[i]));
+                }
+            }
+            this.message = sb.toString();
+            return this;
+        }
 
-    public static class UnAuthorized extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UNAUTHORIZED;
-    }
+        public Builder setExceptionEnum(BlogExceptionEnum exceptionEnum) {
+            this.status = exceptionEnum.getStatus();
+            this.reason = exceptionEnum.getReason();
+            this.code = exceptionEnum.getCode();
+            this.message = exceptionEnum.getMessage();
+            return this;
+        }
 
-    public static class UserNotFound extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_NOT_FOUND;
-    }
+        public Builder setStatus(Integer status) {
+            this.status = status != null ? status : null;
+            return this;
+        }
 
-    public static class UsernameOrPasswordInvalid extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USERNAME_OR_PASSWORD_INVALID;
-    }
+        public Builder setReason(String reason) {
+            this.reason = reason != null ? reason : null;
+            return this;
+        }
 
-    public static class NeedField extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.NEED_FIELD;
-    }
+        public Builder setCode(Integer code) {
+            this.code = code != null ? code : null;
+            return this;
+        }
 
-    public static class UnAuthorizedUser extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UNAUTHORIZED_USER;
-    }
+        public Builder setMessage(String message) {
+            this.message = message != null ? message : null;
+            return this;
+        }
 
-    public static class UnAuthorizedGroup extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UNAUTHORIZED_GROUP;
-    }
+        public Builder setTimestamp(Instant timestamp) {
+            this.timestamp = timestamp != null ? timestamp : null;
+            return this;
+        }
 
-    public static class UserLoginSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGIN_SUCCESS;
-    }
+        public BlogException build() {
+            if (status != null && reason != null && code != null && message != null) {
+                if (code >= BlogExceptionEnum.BASE_ERROR.getCode()) {
+                    return new BlogException(status, reason, code, message);
+                } else if (code >= BlogExceptionEnum.USER_ERROR.getCode()) {
+                    return new UserException(status, reason, code, message);
+                } else if (code >= BlogExceptionEnum.ARTICLE_ERROR.getCode()) {
+                    return new ArticleException(status, reason, code, message);
+                } else if (code >= BlogExceptionEnum.CATEGORY_ERROR.getCode()) {
+                    return new CategoryException(status, reason, code, message);
+                } else if (code >= BlogExceptionEnum.COMMENT_ERROR.getCode()) {
+                    return new CommentException(status, reason, code, message);
+                } else if (code >= BlogExceptionEnum.TAG_ERROR.getCode()) {
+                    return new TagException(status, reason, code, message);
+                } else {
+                    return new BlogException(status, reason, code, message);
+                }
+            } else {
+                return null;
+            }
+        }
 
-    public static class UserLoginFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGIN_FAILED;
     }
-
-    public static class UserLogoutSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGOUT_SUCCESS;
-    }
-
-    public static class UserLogoutFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.USER_LOGOUT_FAILED;
-    }
-
-    public static class TokenIsExpired extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TOKEN_IS_EXPIRED;
-    }
-
-    public static class TokenNotEffective extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TOKEN_NOT_EFFECTIVE;
-    }
-
-    public static class DeleteUserSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_USER_SUCCESS;
-    }
-
-    public static class DeleteUserFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_USER_FAILED;
-    }
-
-    public static class TagNotFound extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TAG_NOT_FOUND;
-    }
-
-    public static class DeleteTagSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_TAG_SUCCESS;
-    }
-
-    public static class DeleteTagFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_TAG_FAILED;
-    }
-
-    public static class TagAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.TAG_ALREADY_EXIST;
-    }
-
-    public static class CategoryNotFound extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.CATEGORY_NOT_FOUND;
-    }
-
-    public static class DeleteCategorySuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_CATEGORY_SUCCESS;
-    }
-
-    public static class DeleteCategoryFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_CATEGORY_FAILED;
-    }
-
-    public static class CategoryAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.CATEGORY_ALREADY_EXIST;
-    }
-
-    public static class CommentNotFound extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.COMMENT_NOT_FOUND;
-    }
-
-    public static class DeleteCommentSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_COMMENT_SUCCESS;
-    }
-
-    public static class DeleteCommentFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_COMMENT_FAILED;
-    }
-
-    public static class CommentAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.COMMENT_ALREADY_EXIST;
-    }
-
-    public static class ArticleNotFound extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.ARTICLE_NOT_FOUND;
-    }
-
-    public static class DeleteArticleSuccess extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_ARTICLE_SUCCESS;
-    }
-
-    public static class DeleteArticleFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.DELETE_ARTICLE_FAILED;
-    }
-
-    public static class ArticleAlreadyExist extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.ARTICLE_ALREADY_EXIST;
-    }
-
-    public static class EmptyImage extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.EMPTY_IMAGE;
-    }
-
-    public static class UploadImageFailed extends BlogException {
-        BlogExceptionEnum blogExceptionEnum = BlogExceptionEnum.UPLOAD_IMAGE_FAILED;
-    }
-
 }

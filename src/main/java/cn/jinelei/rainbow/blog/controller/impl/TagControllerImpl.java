@@ -7,6 +7,7 @@ import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.TagService;
 import cn.jinelei.rainbow.blog.service.UserService;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -66,7 +67,7 @@ public class TagControllerImpl implements TagController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         if (tagEntity.getTagCreator() == null) {
             tagEntity.setTagCreator(operator);
@@ -90,7 +91,7 @@ public class TagControllerImpl implements TagController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         TagEntity tmp = tagService.findTagById(tagEntity.getTagId());
         if (!StringUtils.isEmpty(tagEntity.getName())) {
@@ -114,13 +115,13 @@ public class TagControllerImpl implements TagController {
         TagEntity tmp = tagService.findTagById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         try {
             tagService.removeTag(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteTagSuccess(), HttpStatus.OK);
+            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_TAG_SUCCESS).build(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteTagFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_TAG_FAILED).build();
         }
     }
 
@@ -133,7 +134,7 @@ public class TagControllerImpl implements TagController {
         TagEntity tmp = tagService.findTagById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         return new ResponseEntity<>(tmp, HttpStatus.BAD_REQUEST);
     }

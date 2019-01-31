@@ -11,6 +11,7 @@ import cn.jinelei.rainbow.blog.entity.enumerate.BrowsePrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.CommentPrivilege;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.ArticleService;
 import cn.jinelei.rainbow.blog.service.CategoryService;
 import cn.jinelei.rainbow.blog.service.TagService;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -80,7 +82,7 @@ public class ArticleControllerImpl implements ArticleController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(articleEntity.getAuthor().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         if (articleEntity.getAuthor() == null) {
             articleEntity.setAuthor(operator);
@@ -104,7 +106,7 @@ public class ArticleControllerImpl implements ArticleController {
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(articleEntity.getAuthor().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         ArticleEntity tmp = articleService.findArticleById(articleEntity.getArticleId());
         if (!StringUtils.isEmpty(articleEntity.getTitle())) {
@@ -143,13 +145,13 @@ public class ArticleControllerImpl implements ArticleController {
         ArticleEntity tmp = articleService.findArticleById(id);
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
-            throw new BlogException.UnAuthorized();
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         try {
             articleService.removeArticle(tmp);
-            return new ResponseEntity<>(new BlogException.DeleteArticleSuccess(), HttpStatus.OK);
+            return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.DELETE_ARTICLE_SUCCESS).build(), HttpStatus.OK);
         } catch (Exception e) {
-            throw new BlogException.DeleteArticleFailed();
+            throw new BlogException.Builder(BlogExceptionEnum.DELETE_ARTICLE_FAILED, "id: " + id).build();
         }
     }
 
@@ -169,12 +171,12 @@ public class ArticleControllerImpl implements ArticleController {
                         && tmp.getAuthor().getUserId().equals(operator.getUserId())) {
                     return new ResponseEntity<>(tmp, HttpStatus.OK);
                 } else {
-                    throw new BlogException.UnAuthorized();
+                    throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
                 }
             case ALLOW_FRIEND:
             case INVALID_VALUE:
             default:
-                throw new BlogException.UnAuthorized();
+                throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
 
         }
     }
@@ -331,7 +333,7 @@ public class ArticleControllerImpl implements ArticleController {
             }
         }
         if (articleEntities.size() == 0) {
-            throw new BlogException.QueryDataError();
+            throw new BlogException.Builder(BlogExceptionEnum.QUERY_DATA_FAILED, params.toString()).build();
         }
         return new ResponseEntity<List<ArticleEntity>>(articleEntities, HttpStatus.OK);
     }

@@ -1,79 +1,100 @@
 package cn.jinelei.rainbow.blog.exception.enumerate;
 
+import org.springframework.http.HttpStatus;
+
+import static cn.jinelei.rainbow.blog.constant.Constants.*;
+
 /**
  * @author zhenlei
  */
 
 public enum BlogExceptionEnum {
+
     /**
      * 基础错误码
      */
-    INSERT_DATA_ERROR(900010, "insert data error"),
-    INSERT_DATA_ERROR_WITH_ALREADY_EXIST_FIELD(900011, "insert data error: already exist field"),
-    UPDATE_DATA_ERROR(900020, "update data error"),
-    DELETE_DATA_ERROR(900030, "remove data error"),
-    QUERY_DATA_ERROR(900040, "query data error"),
-    DATA_NOT_FOUND(900050, "query data not found"),
-    /**
-     * token错误码
-     */
-    TOKEN_NOT_EFFECTIVE(900032, "token not effective"),
-    TOKEN_IS_EXPIRED(900064, "token is expired"),
+    BASE_ERROR(HttpStatus.BAD_REQUEST.value(), BASE_ERROR_STR, 900000, PARAM_PLACEHOLDER),
+    INSERT_DATA_FAILED(HttpStatus.BAD_REQUEST.value(), INSERT_DATA_FAILED_STR, 900001, PARAM_PLACEHOLDER),
+    UPDATE_DATA_FAILED(HttpStatus.BAD_REQUEST.value(), UPDATE_DATA_FAILED_STR, 900002, PARAM_PLACEHOLDER),
+    DELETE_DATA_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_DATA_FAILED_STR, 900003, PARAM_PLACEHOLDER),
+    QUERY_DATA_FAILED(HttpStatus.BAD_REQUEST.value(), QUERY_DATA_FAILED_STR, 900003, PARAM_PLACEHOLDER),
+    DATA_NOT_FOUND(HttpStatus.NOT_FOUND.value(), NOT_FOUND_STR, 900004, PARAM_PLACEHOLDER),
+    UPLOAD_IMAGE_FAILED(HttpStatus.BAD_REQUEST.value(), UPLOAD_IMAGE_FAILED_STR, 900005, PARAM_PLACEHOLDER),
+    EMPTY_IMAGE(HttpStatus.BAD_REQUEST.value(), EMPTY_IMAGE_STR, 900006, PARAM_PLACEHOLDER),
     /**
      * 用户错误码
      */
-    USER_NOT_LOGIN(800000, "user not login"),
-    EMAIL_ALREADY_EXIST(800001, "email already exist"),
-    PHONE_ALREADY_EXIST(800002, "phone already exist"),
-    USERNAME_NOT_UNIQUE(800004, "username not unique"),
-    UNAUTHORIZED(800008, "unauthorized"),
-    USER_NOT_FOUND(800016, "user not found"),
-    USERNAME_OR_PASSWORD_INVALID(800032, "username or password invalid"),
-    NEED_FIELD(800064, "need field"),
-    UNAUTHORIZED_USER(800128, "unauthorized user"),
-    UNAUTHORIZED_GROUP(800256, "unauthorized group"),
-    USER_LOGIN_SUCCESS(800512, "user login success"),
-    USER_LOGIN_FAILED(801024, "user login failed"),
-    USER_LOGOUT_SUCCESS(802048, "user logout success"),
-    USER_LOGOUT_FAILED(804096, "user logout failed"),
-    DELETE_USER_SUCCESS(808192, "delete user success"),
-    DELETE_USER_FAILED(816384, "delete user failed"),
+    USER_ERROR(HttpStatus.BAD_REQUEST.value(), USER_ERROR_STR, 800000, PARAM_PLACEHOLDER),
+    USERNAME_OR_PASSWORD_WRONG(HttpStatus.BAD_REQUEST.value(), USERNAME_OR_PASSWORD_WRONG_STR, 800010, PARAM_PLACEHOLDER),
+    USER_NOT_LOGIN(HttpStatus.BAD_REQUEST.value(), UESR_NOT_LOGIN_STR, 800000, PARAM_PLACEHOLDER),
+    EMAIL_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), EMAIL_ALREADY_EXIST_STR, 800001, PARAM_PLACEHOLDER),
+    PHONE_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), PHONE_ALREADY_EXIST_STR, 800002, PARAM_PLACEHOLDER),
+    USERNAME_NOT_UNIQUE(HttpStatus.BAD_REQUEST.value(), USERNAME_NOT_UNIQUE_STR, 800004, PARAM_PLACEHOLDER),
+    UNAUTHORIZED(HttpStatus.BAD_REQUEST.value(), UNAUTHORIZED_STR, 800008, PARAM_PLACEHOLDER),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND.value(), USER_NOT_FOUND_STR, 800016, PARAM_PLACEHOLDER),
+    NEED_FIELD(HttpStatus.BAD_REQUEST.value(), NEED_FIELD_STR, 800064, PARAM_PLACEHOLDER),
+    UNAUTHORIZED_USER(HttpStatus.BAD_REQUEST.value(), UNAUTHORIZED_USER_STR, 800128, PARAM_PLACEHOLDER),
+    UNAUTHORIZED_GROUP(HttpStatus.BAD_REQUEST.value(), UNAUTHORIZED_GROUP_STR, 800256, PARAM_PLACEHOLDER),
+    USER_LOGIN_SUCCESS(HttpStatus.OK.value(), USER_LOGIN_SUCCESS_STR, 800512, PARAM_PLACEHOLDER),
+    USER_LOGIN_FAILED(HttpStatus.BAD_REQUEST.value(), USER_LOGIN_FAILED_STR, 801024, PARAM_PLACEHOLDER),
+    USER_LOGOUT_SUCCESS(HttpStatus.OK.value(), USER_LOGOUT_SUCCESS_STR, 802048, PARAM_PLACEHOLDER),
+    USER_LOGOUT_FAILED(HttpStatus.BAD_REQUEST.value(), USER_LOGOUT_FAILED_STR, 804096, PARAM_PLACEHOLDER),
+    DELETE_USER_SUCCESS(HttpStatus.OK.value(), DELETE_USER_SUCCESS_STR, 808192, PARAM_PLACEHOLDER),
+    DELETE_USER_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_USER_FAILED_STR, 816384, PARAM_PLACEHOLDER),
     /**
      * 标签错误码
      */
-    TAG_NOT_FOUND(700000, "tag not found"),
-    DELETE_TAG_SUCCESS(700001, "delete tag success"),
-    DELETE_TAG_FAILED(700002, "delete tag failed"),
-    TAG_ALREADY_EXIST(700004, "tag already exist"),
+    TAG_ERROR(HttpStatus.BAD_REQUEST.value(), TAG_ERROR_STR, 700000, PARAM_PLACEHOLDER),
+    TAG_NOT_FOUND(HttpStatus.NOT_FOUND.value(), TAG_NOT_FOUND_STR, 700000, PARAM_PLACEHOLDER),
+    DELETE_TAG_SUCCESS(HttpStatus.OK.value(), DELETE_TAG_SUCCESS_STR, 700001, PARAM_PLACEHOLDER),
+    DELETE_TAG_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_TAG_FAILED_STR, 700002, PARAM_PLACEHOLDER),
+    TAG_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), TAG_ALREADY_EXIST_STR, 700003, PARAM_PLACEHOLDER),
     /**
      * 分类错误码
      */
-    CATEGORY_NOT_FOUND(600000, "category not found"),
-    DELETE_CATEGORY_SUCCESS(600001, "delete category success"),
-    DELETE_CATEGORY_FAILED(600002, "delete category failed"),
-    CATEGORY_ALREADY_EXIST(600004, "category already exist"),
+    CATEGORY_ERROR(HttpStatus.BAD_REQUEST.value(), CATEGORY_ERROR_STR, 400000, PARAM_PLACEHOLDER),
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND.value(), CATEGORY_NOT_FOUND_STR, 600000, PARAM_PLACEHOLDER),
+    DELETE_CATEGORY_SUCCESS(HttpStatus.OK.value(), DELETE_CATEGORY_SUCCESS_STR, 600001, PARAM_PLACEHOLDER),
+    DELETE_CATEGORY_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_CATEGORY_FAILED_STR, 600002, PARAM_PLACEHOLDER),
+    CATEGORY_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), CATEGORY_ALREADY_EXIST_STR, 600003, PARAM_PLACEHOLDER),
     /**
      * 评论错误码
      */
-    COMMENT_NOT_FOUND(500000, "comment not found"),
-    DELETE_COMMENT_SUCCESS(500001, "delete comment success"),
-    DELETE_COMMENT_FAILED(500002, "delete comment failed"),
-    COMMENT_ALREADY_EXIST(500004, "comment already exist"),
+    COMMENT_ERROR(HttpStatus.BAD_REQUEST.value(), COMMENT_ERROR_STR, 500000, PARAM_PLACEHOLDER),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND.value(), COMMENT_NOT_FOUND_STR, 500000, PARAM_PLACEHOLDER),
+    DELETE_COMMENT_SUCCESS(HttpStatus.OK.value(), DELETE_COMMENT_SUCCESS_STR, 500001, PARAM_PLACEHOLDER),
+    DELETE_COMMENT_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_COMMENT_FAILED_STR, 500002, PARAM_PLACEHOLDER),
+    COMMENT_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), COMMENT_ALREADY_EXIST_STR, 500003, PARAM_PLACEHOLDER),
     /**
      * 文章错误码
      */
-    ARTICLE_NOT_FOUND(400000, "article not found"),
-    DELETE_ARTICLE_SUCCESS(400001, "delete article success"),
-    DELETE_ARTICLE_FAILED(400002, "delete article failed"),
-    ARTICLE_ALREADY_EXIST(400004, "article already exist"),
+    ARTICLE_ERROR(HttpStatus.BAD_REQUEST.value(), ARTICLE_ERROR_STR, 400000, PARAM_PLACEHOLDER),
+    ARTICLE_NOT_FOUND(HttpStatus.NOT_FOUND.value(), ARTICLE_NOT_FOUND_STR, 400000, PARAM_PLACEHOLDER),
+    DELETE_ARTICLE_SUCCESS(HttpStatus.OK.value(), DELETE_ARTICLE_SUCCESS_STR, 400001, PARAM_PLACEHOLDER),
+    DELETE_ARTICLE_FAILED(HttpStatus.BAD_REQUEST.value(), DELETE_ARTICLE_FAILED_STR, 400002, PARAM_PLACEHOLDER),
+    ARTICLE_ALREADY_EXIST(HttpStatus.BAD_REQUEST.value(), ARTICLE_ALREADY_EXIST_STR, 400003, PARAM_PLACEHOLDER),
+    /**
+     * token错误码
+     */
+    TOKEN_ERROR(HttpStatus.BAD_REQUEST.value(), TOKEN_ERROR_STR, 300000, PARAM_PLACEHOLDER),
+    TOKEN_NOT_EFFECTIVE(HttpStatus.BAD_REQUEST.value(), TOKEN_NOT_EFFECTIVE_STR, 300001, PARAM_PLACEHOLDER),
+    TOKEN_IS_EXPIRED(HttpStatus.BAD_REQUEST.value(), TOKEN_IS_EXPIRED_STR, 300002, PARAM_PLACEHOLDER),
     /**
      * 保留错误码
      */
-    UPLOAD_IMAGE_FAILED(999997, "upload image failed"),
-    EMPTY_IMAGE(999998, "empty image"),
-    UNKNOWN_ERROR(999999, "unknown error");
+    UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR.value(), UNKNOWN_ERROR_STR, 900000, PARAM_PLACEHOLDER);
+    private int status;
+    private String reason;
     private int code;
     private String message;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public String getReason() {
+        return reason;
+    }
 
     public int getCode() {
         return code;
@@ -83,14 +104,11 @@ public enum BlogExceptionEnum {
         return message;
     }
 
-    @Override
-    public String toString() {
-        return String.format("{\"code\":\"%d\",\"message\":\"%s\"}", code, message);
-    }
-
-    BlogExceptionEnum(int code, String message) {
+    BlogExceptionEnum(int status, String reason, int code, String message) {
+        this.status = status;
+        this.reason = reason;
         this.code = code;
         this.message = message;
     }
-
 }
+

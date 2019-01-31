@@ -2,6 +2,7 @@ package cn.jinelei.rainbow.blog.controller.impl;
 
 import cn.jinelei.rainbow.blog.controller.FileController;
 import cn.jinelei.rainbow.blog.exception.BlogException;
+import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,9 +67,9 @@ public class FileControllerImpl {
                 return String.format("%s/%s", uploadImageDir, imageFile.getName());
             } catch (IOException e) {
                 e.printStackTrace();
-                throw new BlogException.UploadImageFailed();
+                throw new BlogException.Builder(BlogExceptionEnum.UPLOAD_IMAGE_FAILED).build();
             }
         }
-        throw new BlogException.EmptyImage();
+        throw new BlogException.Builder(BlogExceptionEnum.EMPTY_IMAGE).build();
     }
 }
