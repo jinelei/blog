@@ -28,7 +28,7 @@ public interface TokenController {
      * @return
      * @throws BlogException
      */
-    public ResponseEntity<BlogException> logout(String token) throws BlogException;
+    public BlogException logout(String token) throws BlogException;
 
 }
 

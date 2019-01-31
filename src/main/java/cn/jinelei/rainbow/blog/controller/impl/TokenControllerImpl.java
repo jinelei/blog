@@ -49,19 +49,19 @@ public class TokenControllerImpl implements TokenController {
 
     @Override
     @RequestMapping(method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
-    public ResponseEntity<BlogException> logout(
+    public BlogException logout(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) throws BlogException {
         if (!StringUtils.isEmpty(token)) {
             if (token.startsWith("Bearer ")) {
                 tokenService.deleteToken(token.replace("Bearer ", ""));
-                return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build(), HttpStatus.OK);
+                return new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build();
             } else {
                 tokenService.deleteToken(token);
-                return new ResponseEntity<>(new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build(), HttpStatus.OK);
+                return new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_SUCCESS).build();
             }
 
         } else {
-            throw new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_FAILED, "token is empty").build();
+            return new BlogException.Builder(BlogExceptionEnum.USER_LOGOUT_FAILED, "token is empty").build();
         }
     }
 
