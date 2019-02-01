@@ -1,7 +1,10 @@
 package cn.jinelei.rainbow.blog.service.impl;
 
+import cn.jinelei.rainbow.blog.constant.ConstantsCamelCase;
 import cn.jinelei.rainbow.blog.entity.TagEntity;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
+import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
+import cn.jinelei.rainbow.blog.entity.enumerate.UserPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.TagRepository;
@@ -108,6 +111,14 @@ public class TagServiceImpl implements TagService {
             @Override
             public Predicate toPredicate(Root<TagEntity> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
                 List<Predicate> predicates = new ArrayList<>(16);
+                if (tagCreator == null) {
+                    throw new BlogException.Builder(BlogExceptionEnum.NEED_FIELD, "need user").build();
+                }
+                if (!tagCreator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                        && !tagCreator.getUserPrivilege().equals(UserPrivilege.ROOT_USER)) {
+                    predicates.add(criteriaBuilder.equal(root.get("tagCreator").as(UserEntity.class),
+                            tagCreator));
+                }
                 if (!StringUtils.isEmpty(name)) {
                     predicates.add(criteriaBuilder.like(root.get("name").as(String.class),
                             String.format("%%%s%%", name)));

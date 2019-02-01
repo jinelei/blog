@@ -86,6 +86,8 @@ public class TagControllerImpl implements TagController {
         UserEntity userEntity = null;
         if (!StringUtils.isEmpty(userId)) {
             userEntity = userService.findUserById(Integer.valueOf(userId));
+        } else {
+            userEntity = operator;
         }
         Integer page = Integer.valueOf(params.get(Constants.PAGE).toString());
         Integer size = Integer.valueOf(params.get(Constants.SIZE).toString());
@@ -142,16 +144,11 @@ public class TagControllerImpl implements TagController {
             @PathVariable(name = "id") Object id,
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
-        if (tagEntity.getTagCreator() == null) {
-            tagEntity.setTagCreator(operator);
-        } else {
-            tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
-        }
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
         TagEntity tmp = tagService.findTagById(tagEntity.getTagId());
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, "do not allow edit").build();
+        }
         if (!StringUtils.isEmpty(tagEntity.getName())) {
             tmp.setName(tagEntity.getName());
         }
