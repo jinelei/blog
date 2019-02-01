@@ -13,6 +13,7 @@ import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlElement;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ import java.util.Objects;
 @Table(name = "user")
 @JacksonXmlRootElement(localName = "user")
 @JsonIgnoreProperties(value = {"hibernateLazyInitializer", "handler", "fieldHandler"})
-public class UserEntity {
+public class UserEntity implements Cloneable, Serializable {
     public interface WithoutPasswordView {
     }
 
@@ -67,12 +68,12 @@ public class UserEntity {
     @XmlElement
     @Convert(converter = UserPrivilegeConvert.class)
     @JsonView(WithoutPasswordView.class)
-    private UserPrivilege userPrivilege = UserPrivilege.TOURIST_USER;
+    private UserPrivilege userPrivilege;
     @Column(nullable = false)
     @XmlElement
     @Convert(converter = GroupPrivilegeConvert.class)
     @JsonView(WithoutPasswordView.class)
-    private GroupPrivilege groupPrivilege = GroupPrivilege.TOURIST_GROUP;
+    private GroupPrivilege groupPrivilege;
     @Column
     @XmlElement
     @JsonIgnore
@@ -96,6 +97,26 @@ public class UserEntity {
     @OneToMany(targetEntity = CommentEntity.class, cascade = CascadeType.REFRESH, mappedBy = "commentator", fetch = FetchType.LAZY)
     @JsonView(WithoutPasswordView.class)
     private List<CommentEntity> comments;
+
+    @Override
+    public UserEntity clone() throws CloneNotSupportedException {
+        UserEntity tmp = new UserEntity();
+        tmp.setUserId(this.getUserId());
+        tmp.setUsername(this.getUsername());
+        tmp.setNickname(this.getNickname());
+        tmp.setPassword(this.getPassword());
+        tmp.setPhone(this.getPhone());
+        tmp.setEmail(this.getEmail());
+        tmp.setProvince(this.getProvince());
+        tmp.setCity(this.getCity());
+        tmp.setUserPrivilege(this.getUserPrivilege());
+        tmp.setGroupPrivilege(this.getGroupPrivilege());
+        tmp.setArticles(this.getArticles());
+        tmp.setCategories(this.getCategories());
+        tmp.setTags(this.getTags());
+        tmp.setComments(this.getComments());
+        return tmp;
+    }
 
     public boolean equalsWithId(Object o) {
         if (this == o) {

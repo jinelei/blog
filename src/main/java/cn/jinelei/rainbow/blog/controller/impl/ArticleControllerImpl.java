@@ -209,9 +209,10 @@ public class ArticleControllerImpl implements ArticleController {
     }
 
     @Override
-    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}",method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = ArticleEntity.BaseArticleView.class)
     public ArticleEntity updateEntity(
+            @PathVariable(name = "id") Object id,
             @RequestBody ArticleEntity articleEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -250,9 +251,9 @@ public class ArticleControllerImpl implements ArticleController {
     @Override
     @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public void deleteEntityById(
-            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "id") Object id,
             @CurrentUser UserEntity operator) throws BlogException {
-        ArticleEntity tmp = articleService.findArticleById(id);
+        ArticleEntity tmp = articleService.findArticleById(Integer.valueOf(id.toString()));
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getAuthor().getUserId())) {
             throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();

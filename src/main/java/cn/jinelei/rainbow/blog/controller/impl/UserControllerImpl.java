@@ -5,6 +5,7 @@ import cn.jinelei.rainbow.blog.constant.Constants;
 import cn.jinelei.rainbow.blog.controller.UserController;
 import cn.jinelei.rainbow.blog.entity.UserEntity;
 import cn.jinelei.rainbow.blog.entity.enumerate.GroupPrivilege;
+import cn.jinelei.rainbow.blog.entity.enumerate.UserPrivilege;
 import cn.jinelei.rainbow.blog.exception.BlogException;
 import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.service.UserService;
@@ -141,57 +142,36 @@ public class UserControllerImpl implements UserController {
         if (!CheckUtils.checkEmail(userEntity.getEmail())) {
             throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is invalid: " + userEntity.getEmail()).build();
         }
+        if (StringUtils.isEmpty(userEntity.getUserPrivilege())) {
+            userEntity.setUserPrivilege(UserPrivilege.TOURIST_USER);
+        }
+        if (StringUtils.isEmpty(userEntity.getGroupPrivilege())) {
+            userEntity.setGroupPrivilege(GroupPrivilege.TOURIST_GROUP);
+        }
         UserEntity opeartionResult = userService.addUser(userEntity);
         return opeartionResult;
     }
 
     @Override
-    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public UserEntity updateEntity(
+            @PathVariable(name = "id") Object id,
             @RequestBody UserEntity userEntity,
-            @CurrentUser UserEntity operator) throws BlogException {
-        UserEntity tmp = userService.findUserById(userEntity.getUserId());
-        CheckUtils.checkOwnerAndGroup(operator, userEntity.getUserId());
-        if (!StringUtils.isEmpty(userEntity.getNickname())) {
-            tmp.setNickname(userEntity.getNickname());
-        }
-        if (!StringUtils.isEmpty(userEntity.getPhone())) {
-            if (!CheckUtils.checkPhone(userEntity.getPhone())) {
-                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "phone is invalid: " + userEntity.getPhone()).build();
-            }
-            tmp.setPhone(userEntity.getPhone());
-        }
-        if (!StringUtils.isEmpty(userEntity.getEmail())) {
-            if (!CheckUtils.checkEmail(userEntity.getEmail())) {
-                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is invalid: " + userEntity.getEmail()).build();
-            }
-            tmp.setEmail(userEntity.getEmail());
-        }
-        if (!StringUtils.isEmpty(userEntity.getPassword())) {
-            if (userEntity.getPassword().length() < 8) {
-                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "password is not strong").build();
-            }
-            tmp.setPassword(userEntity.getPassword());
-        }
-        if (!StringUtils.isEmpty(userEntity.getProvince())) {
-            tmp.setProvince(userEntity.getProvince());
-        }
-        if (!StringUtils.isEmpty(userEntity.getCity())) {
-            tmp.setCity(userEntity.getCity());
-        }
-        userService.updateUser(tmp);
-        return tmp;
+            @CurrentUser UserEntity operator) throws BlogException, CloneNotSupportedException {
+        CheckUtils.checkOwnerAndGroup(operator, Integer.valueOf(id.toString()));
+        userEntity.setUserId(Integer.valueOf(id.toString()));
+        return userService.updateUser(userEntity);
     }
 
     @Override
     @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     @JsonView(value = UserEntity.WithoutPasswordView.class)
     public void deleteEntityById(
-            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "id") Object id,
             @CurrentUser UserEntity operator) throws BlogException {
-        CheckUtils.checkOwnerAndGroup(operator, id);
-        UserEntity tmp = userService.findUserById(id);
+        CheckUtils.checkOwnerAndGroup(operator, Integer.valueOf(id.toString()));
+        UserEntity tmp = userService.findUserById(Integer.valueOf(id.toString()));
         try {
             userService.removeUser(tmp);
             throw new BlogException.Builder(BlogExceptionEnum.DELETE_USER_SUCCESS, "id: " + id).build();

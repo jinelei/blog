@@ -72,12 +72,13 @@ public interface EntityController<T> {
     /**
      * 更新实例
      *
+     * @param id       实例id
      * @param t
      * @param operator 操作者实例
      * @return
      * @throws BlogException
      */
-    default T updateEntity(T t, UserEntity operator) throws BlogException {
+    default T updateEntity(Object id, T t, UserEntity operator) throws BlogException, CloneNotSupportedException {
         LOGGER.debug("default upadte entity");
         return null;
     }
@@ -90,7 +91,7 @@ public interface EntityController<T> {
      * @return 失败返回失败的实例
      * @throws BlogException 成功抛出成功异常
      */
-    default void deleteEntityById(Integer id, UserEntity operator) throws BlogException {
+    default void deleteEntityById(Object id, UserEntity operator) throws BlogException {
         LOGGER.debug("default delete entity by id");
     }
 }

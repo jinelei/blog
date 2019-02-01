@@ -8,6 +8,8 @@ import cn.jinelei.rainbow.blog.exception.enumerate.BlogExceptionEnum;
 import cn.jinelei.rainbow.blog.repository.UserRepository;
 import cn.jinelei.rainbow.blog.service.UserService;
 import cn.jinelei.rainbow.blog.utils.CheckUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -31,9 +35,12 @@ import java.util.Optional;
  */
 @Service
 public class UserServiceImpl implements UserService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private EntityManager entityManager;
 
     @Override
     @Transactional(rollbackFor = {BlogException.class, Exception.class})
@@ -78,24 +85,65 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackFor = {BlogException.class, Exception.class})
     public UserEntity updateUser(UserEntity userEntity) throws BlogException {
-        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
-                criteriaBuilder.and(
-                        criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone()),
-                        criteriaBuilder.notEqual(root.get("user_id").as(Integer.class), userEntity.getUserId())
-                )
-        ).isPresent()) {
-            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
+        if (!StringUtils.isEmpty(userEntity.getUsername())) {
+            throw new BlogException.Builder(BlogExceptionEnum.NOT_ALLOW_UPDATE_FIELD, "username: " + userEntity.getUsername()).build();
         }
-        if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
-                criteriaBuilder.and(
-                        criteriaBuilder.notEqual(root.get(ConstantsCamelCase.USER_ID).as(Integer.class), userEntity.getUserId()),
-                        criteriaBuilder.equal(root.get(Constants.EMAIL).as(String.class), userEntity.getEmail())
-                )
-        ).isPresent()) {
-            throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
+        Optional<UserEntity> optionalUserEntity = userRepository.findById(userEntity.getUserId());
+        if (!optionalUserEntity.isPresent()) {
+            throw new BlogException.Builder(BlogExceptionEnum.USER_NOT_FOUND, "user id: " + userEntity.getUserId()).build();
+        }
+        UserEntity tmp = optionalUserEntity.get();
+        if (!StringUtils.isEmpty(userEntity.getNickname())) {
+            tmp.setNickname(userEntity.getNickname());
+        }
+        if (!StringUtils.isEmpty(userEntity.getPhone())) {
+            if (!CheckUtils.checkPhone(userEntity.getPhone())) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "phone is invalid: " + userEntity.getPhone()).build();
+            }
+            if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
+                    criteriaBuilder.and(
+                            criteriaBuilder.equal(root.get(Constants.PHONE).as(String.class), userEntity.getPhone()),
+                            criteriaBuilder.notEqual(root.get(ConstantsCamelCase.USER_ID).as(Integer.class), userEntity.getUserId())
+                    )
+            ).isPresent()) {
+                throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "phone already exist: " + userEntity.getPhone()).build();
+            }
+            tmp.setPhone(userEntity.getPhone());
+        }
+        if (!StringUtils.isEmpty(userEntity.getEmail())) {
+            if (!CheckUtils.checkEmail(userEntity.getEmail())) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "email is invalid: " + userEntity.getEmail()).build();
+            }
+            if (userRepository.findOne((root, criteriaQuery, criteriaBuilder) ->
+                    criteriaBuilder.and(
+                            criteriaBuilder.notEqual(root.get(ConstantsCamelCase.USER_ID).as(Integer.class), userEntity.getUserId()),
+                            criteriaBuilder.equal(root.get(Constants.EMAIL).as(String.class), userEntity.getEmail())
+                    )
+            ).isPresent()) {
+                throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, "email already exist: " + userEntity.getEmail()).build();
+            }
+            tmp.setEmail(userEntity.getEmail());
+        }
+        if (!StringUtils.isEmpty(userEntity.getPassword())) {
+            if (userEntity.getPassword().length() < 8) {
+                throw new BlogException.Builder(BlogExceptionEnum.CHECK_FAILED, "password is not strong").build();
+            }
+            tmp.setPassword(userEntity.getPassword());
+        }
+        if (!StringUtils.isEmpty(userEntity.getProvince())) {
+            tmp.setProvince(userEntity.getProvince());
+        }
+        if (!StringUtils.isEmpty(userEntity.getCity())) {
+            tmp.setCity(userEntity.getCity());
+        }
+        if (!StringUtils.isEmpty(userEntity.getUserPrivilege())) {
+            tmp.setUserPrivilege(userEntity.getUserPrivilege());
+        }
+        if (!StringUtils.isEmpty(userEntity.getGroupPrivilege())) {
+            tmp.setGroupPrivilege(userEntity.getGroupPrivilege());
         }
         try {
-            return userRepository.save(userEntity);
+            return userRepository.save(tmp);
         } catch (Exception e) {
             throw new BlogException.Builder(BlogExceptionEnum.UPDATE_DATA_FAILED, userEntity.toString()).build();
         }

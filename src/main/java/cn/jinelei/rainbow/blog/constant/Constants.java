@@ -82,4 +82,5 @@ public class Constants {
     public static final String COMMENT_ERROR_STR = "Comment Error";
     public static final String BASE_ERROR_STR = "Base Error";
     public static final String CHECK_FAILED_STR = "Check Failed";
+    public static final String NOT_ALLOW_UPDATE_FIELD_STR = "Not Allow Update Field";
 }

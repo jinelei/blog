@@ -154,9 +154,10 @@ public class CommentControllerImpl implements CommentController {
     }
 
     @Override
-    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = CommentEntity.BaseCommentView.class)
     public CommentEntity updateEntity(
+            @PathVariable(name = "id") Object id,
             @RequestBody CommentEntity commentEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -177,9 +178,9 @@ public class CommentControllerImpl implements CommentController {
     @Override
     @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public void deleteEntityById(
-            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "id") Object id,
             @CurrentUser UserEntity operator) throws BlogException {
-        CommentEntity tmp = commentService.findCommentById(id);
+        CommentEntity tmp = commentService.findCommentById(Integer.valueOf(id.toString()));
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getCommentator().getUserId())) {
             throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();

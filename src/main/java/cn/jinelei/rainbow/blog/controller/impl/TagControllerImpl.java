@@ -136,9 +136,10 @@ public class TagControllerImpl implements TagController {
     }
 
     @Override
-    @RequestMapping(method = {RequestMethod.PUT, RequestMethod.OPTIONS})
+    @RequestMapping(value = "/id/{id}", method = {RequestMethod.PUT, RequestMethod.OPTIONS})
     @JsonView(value = TagEntity.BaseTagView.class)
     public TagEntity updateEntity(
+            @PathVariable(name = "id") Object id,
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
@@ -162,9 +163,9 @@ public class TagControllerImpl implements TagController {
     @Override
     @RequestMapping(value = "/id/{id}", method = {RequestMethod.DELETE, RequestMethod.OPTIONS})
     public void deleteEntityById(
-            @PathVariable(name = "id") Integer id,
+            @PathVariable(name = "id") Object id,
             @CurrentUser UserEntity operator) throws BlogException {
-        TagEntity tmp = tagService.findTagById(id);
+        TagEntity tmp = tagService.findTagById(Integer.valueOf(id.toString()));
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tmp.getTagCreator().getUserId())) {
             throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
