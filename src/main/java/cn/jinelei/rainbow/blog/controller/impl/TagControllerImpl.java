@@ -121,14 +121,14 @@ public class TagControllerImpl implements TagController {
     public TagEntity saveEntity(
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
-        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
-                && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
-            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
-        }
         if (tagEntity.getTagCreator() == null) {
             tagEntity.setTagCreator(operator);
         } else {
             tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
+        }
+        if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
+                && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
+            throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
         }
         TagEntity opeartionResult = null;
         opeartionResult = tagService.addTag(tagEntity);
@@ -142,6 +142,11 @@ public class TagControllerImpl implements TagController {
             @PathVariable(name = "id") Object id,
             @RequestBody TagEntity tagEntity,
             @CurrentUser UserEntity operator) throws BlogException {
+        if (tagEntity.getTagCreator() == null) {
+            tagEntity.setTagCreator(operator);
+        } else {
+            tagEntity.setTagCreator(userService.findUserById(tagEntity.getTagCreator().getUserId()));
+        }
         if (!operator.getGroupPrivilege().equals(GroupPrivilege.ROOT_GROUP)
                 && !operator.getUserId().equals(tagEntity.getTagCreator().getUserId())) {
             throw new BlogException.Builder(BlogExceptionEnum.UNAUTHORIZED, operator.toString()).build();
